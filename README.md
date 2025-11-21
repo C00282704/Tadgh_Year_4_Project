@@ -1,2 +1,2 @@
-# The-Counter---Object-Counting-App
-A mobile application that can count the amount of certain object in a video or photo.
+# Tadgh Year 4 Project
+A mobile application that will display and link to RSS Feeds from various sites
