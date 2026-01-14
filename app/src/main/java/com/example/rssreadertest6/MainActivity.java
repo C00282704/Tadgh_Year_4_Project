@@ -59,10 +59,22 @@ public class MainActivity extends AppCompatActivity {
                         bb.setText(link);
                         bb.setBackgroundColor(5016882);
                         System.out.println(link);
-                        bb.setOnClickListener(view -> {
-                            Uri uri = Uri.parse(link);
-                            startActivity(new Intent(Intent.ACTION_VIEW, uri));
+                        bb.setOnClickListener(new View.OnClickListener(){
+                            public void onClick(View v){
+                                Uri uri = Uri.parse(link);
+                                Intent senderIntent = new Intent(MainActivity.this, Article_Display.class);
+
+                                senderIntent.putExtra("uri",link);
+                                finish();
+                                startActivity(senderIntent);
+                                startActivity(new Intent(MainActivity.this, Article_Display.class));
+                            }
                         });
+//                        bb.setOnClickListener(view -> {
+//                            startActivity(new Intent(MainActivity.this, Article_Display.class));
+//                            Uri uri = Uri.parse(link);
+//                            startActivity(new Intent(Intent.ACTION_VIEW, uri));
+//                        });
                         container.addView(bb);
                     }
                 });
