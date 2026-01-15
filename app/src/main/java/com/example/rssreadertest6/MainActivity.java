@@ -61,13 +61,10 @@ public class MainActivity extends AppCompatActivity {
                         System.out.println(link);
                         bb.setOnClickListener(new View.OnClickListener(){
                             public void onClick(View v){
-                                Uri uri = Uri.parse(link);
                                 Intent senderIntent = new Intent(MainActivity.this, Article_Display.class);
-
-                                senderIntent.putExtra("uri",link);
+                                senderIntent.putExtra("uri", link);
                                 finish();
                                 startActivity(senderIntent);
-                                startActivity(new Intent(MainActivity.this, Article_Display.class));
                             }
                         });
 //                        bb.setOnClickListener(view -> {

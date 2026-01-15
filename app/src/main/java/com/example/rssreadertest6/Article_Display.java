@@ -2,7 +2,9 @@ package com.example.rssreadertest6;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.webkit.WebView;
+import android.widget.ImageButton;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,6 +20,7 @@ public class Article_Display extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         Intent receiverIntent = getIntent();
         String uri = receiverIntent.getStringExtra("uri");
+        System.out.println(uri);
 
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
@@ -30,5 +33,15 @@ public class Article_Display extends AppCompatActivity {
 
         WebView web = findViewById(R.id.WebView);
         web.loadUrl(uri);
+
+        ImageButton iButton = findViewById(R.id.returnButton1);
+        iButton.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                Intent senderIntent = new Intent(Article_Display.this, MainActivity.class);
+                finish();
+                startActivity(senderIntent);
+            }
+        });
     }
 }
