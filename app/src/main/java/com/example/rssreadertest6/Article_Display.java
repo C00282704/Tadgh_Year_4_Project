@@ -1,10 +1,18 @@
 package com.example.rssreadertest6;
 
+import static com.example.rssreadertest6.R.*;
+import static com.example.rssreadertest6.R.id.textToSpeechButton;
+import static java.util.Locale.ENGLISH;
+
 import android.content.Intent;
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
 import android.view.View;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.ImageButton;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,10 +20,9 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import java.net.URI;
-
 public class Article_Display extends AppCompatActivity {
 
+    TextToSpeech tts;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Intent receiverIntent = getIntent();
@@ -31,10 +38,20 @@ public class Article_Display extends AppCompatActivity {
             return insets;
         });
 
-        WebView web = findViewById(R.id.WebView);
-        web.loadUrl(uri);
+        tts = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int i) {
+                if(i != TextToSpeech.ERROR){
+                    tts.setLanguage(ENGLISH);
+                }
+            }
+        });
 
-        ImageButton iButton = findViewById(R.id.returnButton1);
+
+
+        WebView article = findViewById(R.id.WebView);
+
+        ImageButton iButton = findViewById(R.id.returnButton);
         iButton.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
@@ -43,5 +60,45 @@ public class Article_Display extends AppCompatActivity {
                 startActivity(senderIntent);
             }
         });
+        TextView contentView = (TextView) findViewById(R.id.contentView);
+        class MyJavaScriptInterface {
+            private TextView contentView;
+            public MyJavaScriptInterface(TextView aContentView) {
+                contentView = aContentView;
+            }
+
+            @JavascriptInterface
+            public void processContent(String aContent) {
+                final String content = aContent;
+                contentView.post(new Runnable() {
+                    public void run() {
+                        contentView.setText(content);
+                    }
+                });
+            }
+        }
+        article.getSettings().setJavaScriptEnabled(true);
+        article.addJavascriptInterface(new MyJavaScriptInterface(contentView), "INTERFACE");
+        article.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageFinished(WebView view, String url)
+            {
+                view.loadUrl("javascript:window.INTERFACE.processContent(document.getElementsByTagName('body')[0].innerText);");
+            }
+        });
+
+        article.loadUrl(uri);
+        ImageButton ttsButton = findViewById(textToSpeechButton);
+//        ttsButton.setOnClickListener(new View.OnClickListener(){
+//            @Override
+//            public void onClick(View view) {
+////                String text = "XXXXXXXXXXXXXXX";
+//                WebView element = driver.findElement(By.id("exampleId"));
+//                String text = element.getText();
+//
+//                tts.speak(text, TextToSpeech.QUEUE_FLUSH, null);
+//                //FInd out how to get the text off of the article
+//            }
+//        });
     }
 }
