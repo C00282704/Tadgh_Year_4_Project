@@ -14,7 +14,8 @@
         android:text="TextView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/Header" />
+        app:layout_constraintTop_toBottomOf="@+id/Header"
+        tools:visibility="invisible" />
 
     <LinearLayout
         android:id="@+id/Header"
@@ -47,18 +48,17 @@
         android:rotationY="-180"
         app:layout_constraintEnd_toEndOf="@+id/Header"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@android:drawable/ic_menu_directions" />
+        app:srcCompat="@android:drawable/ic_lock_silent_mode" />
 
     <WebView
         android:id="@+id/WebView"
-        android:layout_width="391dp"
-        android:layout_height="316dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.25"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/Header"
-        app:layout_constraintVertical_bias="0.866">
+        app:layout_constraintTop_toTopOf="@+id/contentView">
 
     </WebView>
 </androidx.constraintlayout.widget.ConstraintLayout>
