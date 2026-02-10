@@ -26,6 +26,8 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import java.io.IOException;
+
 public class Article_Display extends AppCompatActivity {
 
     TextToSpeech tts;
@@ -34,6 +36,8 @@ public class Article_Display extends AppCompatActivity {
     TextView contentView;
     WebView article;
     boolean ttsDone;
+
+    Thread thread1;
 
 
     @Override
@@ -124,37 +128,17 @@ public class Article_Display extends AppCompatActivity {
                     ttsButton.setImageResource(android.R.drawable.ic_lock_silent_mode_off);
                     ttsPressed = true;
                     String text = contentView.getText().toString();
-                    runTTS(text);
+                    thread1 = new Thread(new runTTS(text, tts));
+                    thread1.start();
 
                 }
                 else {
                     ttsButton.setImageResource(android.R.drawable.ic_lock_silent_mode);
                     ttsPressed = false;
+                    thread1.interrupt();
                     tts.stop();
                 }
             }
         });
-    }
-    public void runTTS(String text){
-        if(text.length() > 400){
-            String[] strs;
-            int divisions = 0;
-            int length = text.length();
-            int start = 0;
-            while(length > 400){
-                length = length/2;
-                divisions = divisions + 1;
-            }
-            for(int i = 0; i <= divisions; i++) {
-                tts.speak(text.substring(start, (start + 400)), TextToSpeech.QUEUE_FLUSH, null, "Article_ID");
-                while(!ttsDone){
-
-                }
-                start = start + 400;
-            }
-        }
-        else{
-            tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "Article_ID");
-        }
     }
 }
