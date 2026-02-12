@@ -1,19 +1,27 @@
 package com.example.rssreadertest6;
 
+import static android.content.res.Configuration.UI_MODE_NIGHT_MASK;
+
+import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
-import org.apache.commons.io.FileUtils;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -30,10 +38,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 
 
@@ -63,27 +73,44 @@ public class MainActivity extends AppCompatActivity {
 
         new Thread(() -> {
             try {
-                String sourcelinks = getLinks("https://feeds.bbci.co.uk/news/rss.xml?edition=uk");
+                String sourceLinks = getLinks("https://feeds.bbci.co.uk/news/rss.xml?edition=uk");
                 String titles = getTitles("https://feeds.bbci.co.uk/news/rss.xml?edition=uk");
-                Image img = getImages("https://feeds.bbci.co.uk/news/rss.xml?edition=uk");
+                LinkedList<Bitmap> imageList = getImages("https://feeds.bbci.co.uk/news/rss.xml?edition=uk");
                 LinkedList<String> list = new LinkedList<>();
-                if (sourcelinks != null) {
-                    Collections.addAll(list, sourcelinks.split("\\R"));
+                LinkedList<String> titleList = new LinkedList<>();
+                if (sourceLinks != null) {
+                    Collections.addAll(list, sourceLinks.split("\\R"));
+                    Collections.addAll(titleList, titles.split("\\R"));
                 }
+                int uiTheme = UI_MODE_NIGHT_MASK;
 
                 runOnUiThread(() -> {
                     LinearLayout container = findViewById(R.id.LL1);
                     for (int i = 2; i < list.size(); i++) {
                         Log.d("LIST: ", list.get(i));
                         String link = list.get(i);
-                        Button bb = new Button(MainActivity.this);
-                        bb.setLayoutParams(new LinearLayout.LayoutParams(
+                        LinearLayout ll = new LinearLayout(MainActivity.this);
+                        ll.setLayoutParams(new LinearLayout.LayoutParams(
                                 LinearLayout.LayoutParams.MATCH_PARENT,
                                 LinearLayout.LayoutParams.WRAP_CONTENT));
-                        bb.setText(link);
-                        bb.setBackgroundColor(5016882);
-                        System.out.println(link);
-                        bb.setOnClickListener(new View.OnClickListener(){
+
+                        //Creates Title and Thumbnail for each article
+                        TextView tv1 = new TextView(MainActivity.this);
+                        LinearLayout.LayoutParams lp =
+                                new LinearLayout.LayoutParams(
+                                        205,   // width in pixels
+                                        LinearLayout.LayoutParams.MATCH_PARENT    // height in pixels
+                                );
+
+                        tv1.setLayoutParams(lp);
+                        tv1.setText(titleList.get(i));
+                        tv1.setLayoutParams(lp);
+                        ImageView iv1 = new ImageView(MainActivity.this);
+                        iv1.setImageBitmap(imageList.get(i-2));
+                        iv1.setLayoutParams(lp);
+
+                        ll.setBackgroundColor(uiTheme);
+                        ll.setOnClickListener(new View.OnClickListener(){
                             public void onClick(View v){
                                 Intent senderIntent = new Intent(MainActivity.this, Article_Display.class);
                                 senderIntent.putExtra("uri", link);
@@ -91,12 +118,14 @@ public class MainActivity extends AppCompatActivity {
                                 startActivity(senderIntent);
                             }
                         });
-                        container.addView(bb);
+                        ll.addView(tv1);
+                        ll.addView(iv1);
+                        container.addView(ll);
                     }
                 });
 
             } catch (IOException e) {
-                e.printStackTrace();
+                Log.e("IOException:", Objects.requireNonNull(e.getMessage()));
             }
         }).start();
     }
@@ -149,7 +178,11 @@ public class MainActivity extends AppCompatActivity {
                 if(line.contains("<title>")){
                     int firstPos = line.indexOf("<title>");
                     String temp = line.substring(firstPos);
-                    temp = temp.replace("<title>","");
+                    temp = getString(temp);
+                    if(temp.contains("<![CDATA[")){
+                        temp = temp.replace("<![CDATA[","");
+                        temp = temp.replace("]]>","");
+                    }
                     int lastPos = temp.indexOf("</title>");
                     temp = temp.substring(0,lastPos);
                     sCode.append(temp).append("\n");
@@ -166,7 +199,14 @@ public class MainActivity extends AppCompatActivity {
         }
         return null;
     }
-    public static Image getImages(String urlAddress) throws IOException{
+
+    @NonNull
+    private static String getString(String temp) {
+        temp = temp.replace("<title>","");
+        return temp;
+    }
+
+    public static LinkedList<Bitmap> getImages(String urlAddress) throws IOException{
         try{
             URL rssUrl = new URL(urlAddress);
 
@@ -174,44 +214,36 @@ public class MainActivity extends AppCompatActivity {
 
             String line = in.readLine();
             StringBuilder sCode = new StringBuilder();
+            LinkedList<String> images = new LinkedList<>();
 
             if (line != null) {
                 sCode.append(line);
             }
-            String imageFormat = ".jpg";
             while((line = in.readLine())!= null){
                 if(line.contains("<media:thumbnail")){
-                    int firstPos = line.indexOf("<media:thumbnail");
-                    int secPos = line.indexOf("url=\"");
-                    String temp = line.substring(firstPos, secPos);
-                    temp = temp.replace(temp,"");
-                    int lastPos = temp.indexOf("\"");
-                    imageFormat = temp.substring(lastPos-3,lastPos);
-                    temp = temp.substring(0,lastPos);
-                    sCode.append(temp).append("\n");
+                    line = line.substring(line.indexOf("url=\""), line.indexOf("\"/>"));
+                    String temp = line.replace("url=\"", "");
+                    images.add(temp);
+                    Log.d("IMAGES:", temp);
                 }
             }
-            URL url = new URL(sCode.toString());
-
-            Image f = null;
-            FileUtils.copyURLToImage(url, f);
-            //Glide.with(getApplicationContext()).load(sCode.toString()).placeholder(R.drawble.loading);
-//            try{
-//                URL url = new URL(sCode.toString());
-//                InputStream is = url.openStream();
-//                FileOutputStream fo = new FileOutputStream("thumbnail."+ imageFormat);
-//                int b = 0;
-//                while((b=is.read())!=-1){
-//                    fo.write(b);
-//                }
-//                fo.close();
-//                is.close();
-//                in.close();
-//            } catch(MalformedURLException e){
-//                Log.d("IMAGE URL: ", Objects.requireNonNull(e.getMessage()));
-//            }
-
-            return f;
+            LinkedList<Bitmap> bitmaps = new LinkedList<>();
+            for(int i = 0; i < images.size(); i++) {
+                URL url = new URL(images.get(i));
+                try {
+                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection.setDoInput(true);
+                    connection.connect();
+                    InputStream input = connection.getInputStream();
+                    Bitmap myBitmap = BitmapFactory.decodeStream(input);
+                    bitmaps.add(myBitmap);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Log.e("Exception", e.getMessage());
+                    return null;
+                }
+            }
+            return bitmaps;
         } catch (MalformedURLException mue){
             System.out.println("Malformed URL");
         } catch (IOException ioe){
