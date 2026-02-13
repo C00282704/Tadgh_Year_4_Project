@@ -1,26 +1,14 @@
 package com.example.rssreadertest6;
 
 import static android.content.res.Configuration.UI_MODE_NIGHT_MASK;
-
-import android.app.ActionBar;
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.media.Image;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -29,12 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.fragment.app.DialogFragment;
-
-import com.google.firebase.crashlytics.buildtools.reloc.org.apache.commons.io.FileUtils;
-
 import java.io.BufferedReader;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -43,15 +26,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Objects;
 
 
 public class MainActivity extends AppCompatActivity {
-
-    String sourceCode;
-    LinkedList<String> subStr = new LinkedList<>();
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
                         LinearLayout.LayoutParams lp =
                                 new LinearLayout.LayoutParams(
                                         205,   // width in pixels
-                                        LinearLayout.LayoutParams.MATCH_PARENT    // height in pixels
+                                        LinearLayout.LayoutParams.MATCH_PARENT
                                 );
 
                         tv1.setLayoutParams(lp);

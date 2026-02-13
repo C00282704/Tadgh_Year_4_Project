@@ -1,17 +1,11 @@
 package com.example.rssreadertest6;
-
-import static com.example.rssreadertest6.R.*;
 import static com.example.rssreadertest6.R.id.textToSpeechButton;
 import static java.util.Locale.ENGLISH;
 
 import android.content.Intent;
-import android.content.res.Resources;
-import android.graphics.drawable.Drawable;
-import android.media.Image;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
-import android.util.Log;
 import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
@@ -21,12 +15,9 @@ import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.res.ResourcesCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-
-import java.io.IOException;
 
 public class Article_Display extends AppCompatActivity {
 
