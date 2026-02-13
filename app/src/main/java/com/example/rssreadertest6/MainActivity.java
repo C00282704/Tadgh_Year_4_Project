@@ -43,9 +43,11 @@ public class MainActivity extends AppCompatActivity {
 
         new Thread(() -> {
             try {
+                //These pull all of the Links, titles and thumbnails in the given RSS Feed.
                 String sourceLinks = getLinks("https://feeds.bbci.co.uk/news/rss.xml?edition=uk");
                 String titles = getTitles("https://feeds.bbci.co.uk/news/rss.xml?edition=uk");
                 LinkedList<Bitmap> imageList = getImages("https://feeds.bbci.co.uk/news/rss.xml?edition=uk");
+
                 LinkedList<String> list = new LinkedList<>();
                 LinkedList<String> titleList = new LinkedList<>();
                 if (sourceLinks != null) {
