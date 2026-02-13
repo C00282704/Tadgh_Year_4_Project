@@ -63,14 +63,6 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        LinearLayout b1 = findViewById((R.id.LL1));
-        b1.setOnClickListener(new View.OnClickListener(){
-            public void onClick(View v){
-                DialogFragment dialog = new StartGameDialogFragment();
-                dialog.show(getSupportFragmentManager(), "NoticeDialogFragment");
-            }
-        });
-
         new Thread(() -> {
             try {
                 String sourceLinks = getLinks("https://feeds.bbci.co.uk/news/rss.xml?edition=uk");
@@ -87,7 +79,6 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     LinearLayout container = findViewById(R.id.LL1);
                     for (int i = 2; i < list.size(); i++) {
-                        Log.d("LIST: ", list.get(i));
                         String link = list.get(i);
                         LinearLayout ll = new LinearLayout(MainActivity.this);
                         ll.setLayoutParams(new LinearLayout.LayoutParams(
@@ -224,7 +215,6 @@ public class MainActivity extends AppCompatActivity {
                     line = line.substring(line.indexOf("url=\""), line.indexOf("\"/>"));
                     String temp = line.replace("url=\"", "");
                     images.add(temp);
-                    Log.d("IMAGES:", temp);
                 }
             }
             LinkedList<Bitmap> bitmaps = new LinkedList<>();
@@ -250,21 +240,5 @@ public class MainActivity extends AppCompatActivity {
             System.out.println("Something went wrong reading the contents");
         }
         return null;
-    }
-    public static class StartGameDialogFragment extends DialogFragment {
-        @NonNull
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-            // Use the Builder class for convenient dialog construction.
-            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-            builder.setMessage(R.string.project_id)
-                    .setPositiveButton(R.string.app_name, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            // START THE GAME!
-                        }
-                    });
-            // Create the AlertDialog object and return it.
-            return builder.create();
-        }
     }
 }
