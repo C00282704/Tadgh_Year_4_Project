@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "RssReaderTest6"
+rootProject.name = "Theia-News Aggregator"
 include(":app")
  

@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "744523868460",
-    "project_id": "rssreader-e0f45",
-    "storage_bucket": "rssreader-e0f45.firebasestorage.app"
+    "project_number": "664500062679",
+    "project_id": "theia-test-39d0c",
+    "storage_bucket": "theia-test-39d0c.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:744523868460:android:9f13b8e641a5ad03fce489",
+        "mobilesdk_app_id": "1:664500062679:android:71576e724c3b0c2fe86392",
         "android_client_info": {
           "package_name": "com.example.rssreadertest6"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDQbYzDa8HHB0KuZ95yFhtlfR6qiu23RwQ"
+          "current_key": "AIzaSyAYJsgMZJVtHZqHw5_rzGn3yC96KFfXyro"
         }
       ],
       "services": {
