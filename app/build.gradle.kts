@@ -5,13 +5,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.rssreadertest6"
+    namespace = "com.example.theia_news_aggregator"
     compileSdk {
         version = release(36)
     }
 
     defaultConfig {
-        applicationId = "com.example.rssreadertest6"
+        applicationId = "com.example.theia_news_aggregator"
         minSdk = 31
         targetSdk = 36
         versionCode = 1
@@ -47,4 +47,6 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
     implementation("org.jsoup:jsoup:1.22.1")
+    implementation(platform("com.google.firebase:firebase-bom:34.9.0"))
+    implementation("com.google.firebase:firebase-analytics")
 }

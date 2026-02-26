@@ -3,5 +3,7 @@
     <string name="Return">RETURN</string>
     <string name="TitlePlaceholder">Title Placeholder</string>
     <string name="Theia">THEIA</string>
+    <string name="Main">Main</string>
+    <string name="Playlists">Playlists</string>
 
 </resources>
