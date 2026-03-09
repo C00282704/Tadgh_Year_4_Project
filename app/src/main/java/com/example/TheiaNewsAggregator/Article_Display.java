@@ -1,5 +1,5 @@
-package com.example.rssreadertest6;
-import static com.example.rssreadertest6.R.id.textToSpeechButton;
+package com.example.TheiaNewsAggregator;
+import static com.example.TheiaNewsAggregator.R.id.textToSpeechButton;
 import static java.util.Locale.ENGLISH;
 
 import android.content.Intent;
@@ -102,6 +102,7 @@ public class Article_Display extends AppCompatActivity {
                 });
             }
         }
+        article.getSettings().setDomStorageEnabled(true);
         article.getSettings().setJavaScriptEnabled(true);
         article.addJavascriptInterface(new MyJavaScriptInterface(contentView), "INTERFACE");
         article.setWebViewClient(new WebViewClient() {

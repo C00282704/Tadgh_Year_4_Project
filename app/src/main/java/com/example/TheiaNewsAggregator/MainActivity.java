@@ -1,14 +1,20 @@
-package com.example.rssreadertest6;
+package com.example.TheiaNewsAggregator;
 
 import static android.content.res.Configuration.UI_MODE_NIGHT_MASK;
+
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -41,6 +47,34 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
+        ScrollView scrollMain = findViewById(R.id.MainScroll);
+        ScrollView scrollPlaylist = findViewById(R.id.PlayScroll);
+        scrollMain.setVisibility(View.VISIBLE);
+        scrollPlaylist.setVisibility(View.GONE);
+
+        Button mainBtn = findViewById(R.id.MainBtn);
+        mainBtn.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View v){
+                scrollPlaylist.setVisibility(View.GONE);
+                scrollMain.setVisibility(View.VISIBLE);
+            }
+        });
+
+        Button playListBtn = findViewById(R.id.PlaylistBtn);
+        playListBtn.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View v){
+                scrollMain.setVisibility(View.GONE);
+                scrollPlaylist.setVisibility(View.VISIBLE);
+            }
+        });
+        @SuppressLint({"MissingInflatedId", "LocalSuppress"}) ImageButton settingsButton = findViewById(R.id.settingsBtn);
+        settingsButton.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View v){
+                finish();
+                startActivity(new Intent(MainActivity.this, Settings.class));
+            }
+        });
+
         new Thread(() -> {
             try {
                 //These pull all of the Links, titles and thumbnails in the given RSS Feed.
@@ -56,12 +90,14 @@ public class MainActivity extends AppCompatActivity {
                 }
                 int uiTheme = UI_MODE_NIGHT_MASK;
 
+
                 runOnUiThread(() -> {
-                    LinearLayout container = findViewById(R.id.LL1);
+                    LinearLayout mainContainer = findViewById(R.id.LL1);
+                    LinearLayout playContainer = findViewById(R.id.LL2);
                     for (int i = 2; i < list.size(); i++) {
                         String link = list.get(i);
-                        LinearLayout ll = new LinearLayout(MainActivity.this);
-                        ll.setLayoutParams(new LinearLayout.LayoutParams(
+                        LinearLayout listMain = new LinearLayout(MainActivity.this);
+                        listMain.setLayoutParams(new LinearLayout.LayoutParams(
                                 LinearLayout.LayoutParams.MATCH_PARENT,
                                 LinearLayout.LayoutParams.WRAP_CONTENT));
 
@@ -72,7 +108,6 @@ public class MainActivity extends AppCompatActivity {
                                         205,   // width in pixels
                                         LinearLayout.LayoutParams.MATCH_PARENT
                                 );
-
                         tv1.setLayoutParams(lp);
                         tv1.setText(titleList.get(i));
                         tv1.setLayoutParams(lp);
@@ -80,8 +115,8 @@ public class MainActivity extends AppCompatActivity {
                         iv1.setImageBitmap(imageList.get(i-2));
                         iv1.setLayoutParams(lp);
 
-                        ll.setBackgroundColor(uiTheme);
-                        ll.setOnClickListener(new View.OnClickListener(){
+                        listMain.setBackgroundColor(uiTheme);
+                        listMain.setOnClickListener(new View.OnClickListener(){
                             public void onClick(View v){
                                 Intent senderIntent = new Intent(MainActivity.this, Article_Display.class);
                                 senderIntent.putExtra("uri", link);
@@ -89,9 +124,38 @@ public class MainActivity extends AppCompatActivity {
                                 startActivity(senderIntent);
                             }
                         });
-                        ll.addView(tv1);
-                        ll.addView(iv1);
-                        container.addView(ll);
+                        listMain.addView(tv1);
+                        listMain.addView(iv1);
+                        mainContainer.addView(listMain);
+                    }
+                    //Site Playlists
+                    for (int i = 0; i <= 2; i++) {
+                        Log.i("LOG", "Hello");
+                        LinearLayout listPlay = new LinearLayout(MainActivity.this);
+                        listPlay.setLayoutParams(new LinearLayout.LayoutParams(
+                                LinearLayout.LayoutParams.MATCH_PARENT,
+                                LinearLayout.LayoutParams.WRAP_CONTENT));
+
+                        //Creates Title and Thumbnail for each Playlist
+                        ImageView folder = new ImageView(MainActivity.this);
+                        folder.setImageDrawable(Drawable.createFromPath("@android:drawable/file.png"));
+                        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(205, LinearLayout.LayoutParams.MATCH_PARENT);
+                        folder.setLayoutParams(lp);
+
+                        TextView playListName = new TextView(MainActivity.this);
+                        playListName.setText("Temp");
+                        listPlay.addView(folder);
+                        listPlay.addView(playListName);
+                        listPlay.setOnClickListener(new View.OnClickListener(){
+                            public void onClick(View v){
+//                                Intent senderIntent = new Intent(MainActivity.this, Article_Display.class);
+//                                senderIntent.putExtra("uri", link);
+//                                finish();
+//                                startActivity(senderIntent);
+                            }
+                        });
+
+                        playContainer.addView(listPlay);
                     }
                 });
 
@@ -221,4 +285,17 @@ public class MainActivity extends AppCompatActivity {
         }
         return null;
     }
+//    public class ConnectToSupabase {
+//        String SUPABASE_URL = "https://zganowuduwhsgxdhlxcl.supabase.co";
+//        String SUPABASE_KEY = "sb_publishable_vSfZh1SKFxeBtuTdmErOSQ_hI7Ml1rU";
+//        OkHttpClient client = new OkHttpClient();
+//
+//        public void fetchData(String table, Callback callback) {
+//            String url = SUPABASE_URL + "/rest/v1/" + table + "?select=*";
+//
+//            Request request = new Request.Builder().url(url).build();
+//
+//            client.newCall(request).enqueue(callback);
+//        }
+//    }
 }

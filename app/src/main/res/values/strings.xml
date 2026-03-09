@@ -5,5 +5,8 @@
     <string name="Theia">THEIA</string>
     <string name="Main">Main</string>
     <string name="Playlists">Playlists</string>
-
+    <string name="settingsCogCredit"><a href="https://www.flaticon.com/free-icons/cog" title="cog icons">Cog icons created by Pavel Kozlov - Flaticon</a></string>
+    <string name="RSS_Feeds">RSS Feeds</string>
+    <string name="BBC">BBC</string>
+    
 </resources>

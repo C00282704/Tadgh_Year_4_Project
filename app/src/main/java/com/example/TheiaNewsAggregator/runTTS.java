@@ -1,4 +1,4 @@
-package com.example.rssreadertest6;
+package com.example.TheiaNewsAggregator;
 
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;

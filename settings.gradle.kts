@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Theia-News Aggregator"
+rootProject.name = "TheiaNewsAggregator"
 include(":app")
  

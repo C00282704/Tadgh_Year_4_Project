@@ -5,13 +5,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.theia_news_aggregator"
+    namespace = "com.example.TheiaNewsAggregator"
     compileSdk {
         version = release(36)
     }
 
     defaultConfig {
-        applicationId = "com.example.theia_news_aggregator"
+        applicationId = "com.example.TheiaNewsAggregator"
         minSdk = 31
         targetSdk = 36
         versionCode = 1
@@ -49,4 +49,6 @@ dependencies {
     implementation("org.jsoup:jsoup:1.22.1")
     implementation(platform("com.google.firebase:firebase-bom:34.9.0"))
     implementation("com.google.firebase:firebase-analytics")
+    implementation("com.squareup.okhttp3:okhttp:4.11.0")
+    implementation("com.google.code.gson:gson:2.10.1")
 }
