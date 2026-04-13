@@ -12,6 +12,7 @@ firebaseCrashlytics = "20.0.3"
 googleGmsGoogleServices = "4.4.4"
 googleFirebaseCrashlytics = "3.0.6"
 firebaseCrashlyticsBuildtools = "3.0.6"
+datastorePreferencesRxjava3 = "1.2.1"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -24,6 +25,7 @@ constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayo
 cardview = { group = "androidx.cardview", name = "cardview", version.ref = "cardview" }
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics", version.ref = "firebaseCrashlytics" }
 firebase-crashlytics-buildtools = { group = "com.google.firebase", name = "firebase-crashlytics-buildtools", version.ref = "firebaseCrashlyticsBuildtools" }
+datastore-preferences-rxjava3 = { group = "androidx.datastore", name = "datastore-preferences-rxjava3", version.ref = "datastorePreferencesRxjava3" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
