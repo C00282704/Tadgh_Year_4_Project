@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.google.gms.google.services)
-    alias(libs.plugins.google.firebase.crashlytics)
 }
 
 android {
@@ -41,8 +40,6 @@ dependencies {
     implementation(libs.activity)
     implementation(libs.constraintlayout)
     implementation(libs.cardview)
-    implementation(libs.firebase.crashlytics)
-    implementation(libs.firebase.crashlytics.buildtools)
     implementation(libs.datastore.preferences.rxjava3)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

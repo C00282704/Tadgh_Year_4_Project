@@ -78,7 +78,8 @@ public class MainActivity extends AppCompatActivity {
         @SuppressLint({"MissingInflatedId", "LocalSuppress"}) ImageButton settingsButton = findViewById(R.id.settingsBtn);
         settingsButton.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
-                finish();
+                Intent senderIntent = new Intent(MainActivity.this, Article_Display.class);
+                senderIntent.putExtra("PreviousActivity", "MainActivity");
                 startActivity(new Intent(MainActivity.this, Settings.class));
             }
         });
@@ -95,30 +96,26 @@ public class MainActivity extends AppCompatActivity {
 
 //        SettingsManager sm = new SettingsManager(this);
 //        Set<String> urls = sm.getSetting();
-        Log.d("LOG", "1");
         SharedPreferences prefs = getSharedPreferences("Prefs", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        Log.d("LOG", "2");
         Gson gson = new Gson();
-        Log.d("LOG", "3");
         String jsonString = prefs.getString("feedUrls", null);
-        Log.d("LOG", "4");
         List<String> urls = gson.fromJson(jsonString, new TypeToken<List<String>>(){}.getType());
-        Log.d("LOG", "5");
-        if(urls.get(0) == null){
+        if(urls == null || urls.isEmpty()){
             List<String> list = new ArrayList<>();
             list.add("https://feeds.bbci.co.uk/news/rss.xml?edition=uk");
             String json = gson.toJson(list);
             prefs.edit().putString("feedUrls", json).apply();
+            urls = new ArrayList<>();
             urls.add("https://feeds.bbci.co.uk/news/rss.xml?edition=uk");
 
         }
 
+        List<String> finalUrls = urls;
         new Thread(() -> {
             try {
-                for(int i = 0; i<urls.size(); i++){
+                for(int i = 0; i< finalUrls.size(); i++){
                     //These pull all of the Links, titles and thumbnails in the given RSS Feed.
-                    String url = urls.get(i);
+                    String url = finalUrls.get(i);
                     String sourceLinks = getLinks(url);
                     String titles = getTitles(url);
                     List<Bitmap> imageList = getImages(url);
@@ -164,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
                                 public void onClick(View v){
                                     Intent senderIntent = new Intent(MainActivity.this, Article_Display.class);
                                     senderIntent.putExtra("uri", link);
-                                    finish();
+                                    senderIntent.putExtra("PreviousActivity", "MainActivity");
                                     startActivity(senderIntent);
                                 }
                             });
@@ -208,99 +205,6 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("IOException:", Objects.requireNonNull(e.getMessage()));
             }
         }).start();
-
-//        new Thread(() -> {
-//            try {
-//                //These pull all of the Links, titles and thumbnails in the given RSS Feed.
-//                String url = "https://feeds.bbci.co.uk/news/rss.xml?edition=uk";
-//                String sourceLinks = getLinks(url);
-//                String titles = getTitles(url);
-//                LinkedList<Bitmap> imageList = getImages(url);
-//
-//                LinkedList<String> list = new LinkedList<>();
-//                LinkedList<String> titleList = new LinkedList<>();
-//                if (sourceLinks != null) {
-//                    Collections.addAll(list, sourceLinks.split("\\R"));
-//                    Collections.addAll(titleList, titles.split("\\R"));
-//                }else{
-//                    Log.i("LOG", "sourcelinks Failed");
-//                }
-//                int uiTheme = UI_MODE_NIGHT_MASK;
-//
-//                Log.i("List", list.toString());
-//
-//                runOnUiThread(() -> {
-//                    LinearLayout mainContainer = findViewById(R.id.LL1);
-//                    LinearLayout playContainer = findViewById(R.id.LL2);
-//                    for (int i = 2; i < list.size(); i++) {
-//                        String link = list.get(i);
-//                        LinearLayout listMain = new LinearLayout(MainActivity.this);
-//                        listMain.setLayoutParams(new LinearLayout.LayoutParams(
-//                                LinearLayout.LayoutParams.MATCH_PARENT,
-//                                LinearLayout.LayoutParams.WRAP_CONTENT));
-//
-//                        //Creates Title and Thumbnail for each article
-//                        TextView tv1 = new TextView(MainActivity.this);
-//                        LinearLayout.LayoutParams lp =
-//                                new LinearLayout.LayoutParams(
-//                                        205,   // width in pixels
-//                                        LinearLayout.LayoutParams.MATCH_PARENT
-//                                );
-//                        tv1.setLayoutParams(lp);
-//                        tv1.setText(titleList.get(i));
-//                        tv1.setLayoutParams(lp);
-//                        ImageView iv1 = new ImageView(MainActivity.this);
-//                        iv1.setImageBitmap(imageList.get(i-2));
-//                        iv1.setLayoutParams(lp);
-//
-//                        listMain.setBackgroundColor(uiTheme);
-//                        listMain.setOnClickListener(new View.OnClickListener(){
-//                            public void onClick(View v){
-//                                Intent senderIntent = new Intent(MainActivity.this, Article_Display.class);
-//                                senderIntent.putExtra("uri", link);
-//                                finish();
-//                                startActivity(senderIntent);
-//                            }
-//                        });
-//                        listMain.addView(tv1);
-//                        listMain.addView(iv1);
-//                        mainContainer.addView(listMain);
-//                    }
-//                    //Site Playlists
-//                    for (int i = 0; i <= 2; i++) {
-//                        Log.i("LOG", "Hello");
-//                        LinearLayout listPlay = new LinearLayout(MainActivity.this);
-//                        listPlay.setLayoutParams(new LinearLayout.LayoutParams(
-//                                LinearLayout.LayoutParams.MATCH_PARENT,
-//                                LinearLayout.LayoutParams.WRAP_CONTENT));
-//
-//                        //Creates Title and Thumbnail for each Playlist
-//                        ImageView folder = new ImageView(MainActivity.this);
-//                        folder.setImageDrawable(Drawable.createFromPath("@android:drawable/file.png"));
-//                        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(205, LinearLayout.LayoutParams.MATCH_PARENT);
-//                        folder.setLayoutParams(lp);
-//
-//                        TextView playListName = new TextView(MainActivity.this);
-//                        playListName.setText("Temp");
-//                        listPlay.addView(folder);
-//                        listPlay.addView(playListName);
-//                        listPlay.setOnClickListener(new View.OnClickListener(){
-//                            public void onClick(View v){
-////                                Intent senderIntent = new Intent(MainActivity.this, Article_Display.class);
-////                                senderIntent.putExtra("uri", link);
-////                                finish();
-////                                startActivity(senderIntent);
-//                            }
-//                        });
-//
-//                        playContainer.addView(listPlay);
-//                    }
-//                });
-//
-//            } catch (IOException e) {
-//                Log.e("IOException:", Objects.requireNonNull(e.getMessage()));
-//            }
-//        }).start();
     }
     public static String getLinks(String urlAddress) throws IOException{
         try{

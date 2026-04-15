@@ -5,8 +5,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.media.Image;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -15,6 +15,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -28,8 +29,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.io.StringReader;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 import okhttp3.OkHttpClient;
@@ -38,10 +38,10 @@ import okhttp3.Response;
 
 public class ChangeRSSFeeds extends AppCompatActivity {
 
-    List<String> names;
-    List<Bitmap> images;
-    List<String> links;
-    List<String> prefLinks;
+    List<String> names = new ArrayList<>();
+    List<Bitmap> images = new ArrayList<>();
+    List<String> links = new ArrayList<>();
+    List<String> prefLinks = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,16 +62,14 @@ public class ChangeRSSFeeds extends AppCompatActivity {
         applyButton.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
                 SharedPreferences prefs = getSharedPreferences("Prefs", Context.MODE_PRIVATE);
-                SharedPreferences.Editor editor = prefs.edit();
                 Gson gson = new Gson();
                 String json = gson.toJson(prefLinks);
-                prefs.edit().putString("feedUrls", json).apply();
+                prefs.edit().putString("feedUrls", json).commit();
 
                 String jsonString = prefs.getString("feedUrls", null);
                 List<String> loaded = gson.fromJson(jsonString, new TypeToken<List<String>>(){}.getType());
 
                 Intent senderIntent = new Intent(ChangeRSSFeeds.this, Settings.class);
-                finish();
                 startActivity(senderIntent);
             }
         });
@@ -125,37 +123,38 @@ public class ChangeRSSFeeds extends AppCompatActivity {
             } catch (JSONException e) {
                 throw new RuntimeException(e);
             }
-        }).start();
-
-        if (names != null) {
-            LinearLayout mainContainer = findViewById(R.id.LLMain);
-            for (int i = 0; i < names.size(); i++) {
-                //Create button
-                LinearLayout newLayout = new LinearLayout(ChangeRSSFeeds.this);
-                CheckBox newCB = new CheckBox(ChangeRSSFeeds.this);
-                newCB.setText(names.get(i));//RSS Feed Name
-                String link = links.get(i);
-                int index = i;
-                newCB.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                    @Override
-                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                        if (isChecked) {
-                            prefLinks.add(links.get(index));
-                        } else {
-                            prefLinks.remove(links.get(index));
+            if (names != null) {
+                LinearLayout mainContainer = findViewById(R.id.LLMain);
+                for (int i = 0; i < names.size(); i++) {
+                    Log.i("LOG", "2-Printing");
+                    //Create button
+                    LinearLayout newLayout = new LinearLayout(ChangeRSSFeeds.this);
+                    CheckBox newCB = new CheckBox(ChangeRSSFeeds.this);
+                    newCB.setText(names.get(i));//RSS Feed Name
+                    String link = links.get(i);
+                    int index = i;
+                    newCB.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                        @Override
+                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                            if (isChecked) {
+                                prefLinks.add(links.get(index));
+                            } else {
+                                prefLinks.remove(links.get(index));
+                            }
                         }
-                    }
-                });
-                newLayout.addView(newCB);
+                    });
+                    newLayout.addView(newCB);
 
-                ImageView newLogo = new ImageView(ChangeRSSFeeds.this);
-                newLogo.setImageBitmap(images.get(i));
-                newLayout.addView(newLogo);
+                    ImageView newLogo = new ImageView(ChangeRSSFeeds.this);
+                    newLogo.setImageBitmap(images.get(i));
+                    newLayout.addView(newLogo);
 
-                mainContainer.addView(newLayout);
-
+                    runOnUiThread(() -> {
+                        mainContainer.addView(newLayout);
+                    });
+                }
             }
-        }
+        }).start();
     }
 
 }
