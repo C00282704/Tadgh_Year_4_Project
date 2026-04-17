@@ -13,6 +13,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.OnBackPressedCallback;
@@ -66,8 +67,6 @@ public class ChangeRSSFeeds extends AppCompatActivity {
                 String json = gson.toJson(prefLinks);
                 prefs.edit().putString("feedUrls", json).commit();
 
-                String jsonString = prefs.getString("feedUrls", null);
-                List<String> loaded = gson.fromJson(jsonString, new TypeToken<List<String>>(){}.getType());
 
                 Intent senderIntent = new Intent(ChangeRSSFeeds.this, Settings.class);
                 startActivity(senderIntent);
@@ -107,7 +106,7 @@ public class ChangeRSSFeeds extends AppCompatActivity {
                         String imageUrl = "https://zganowuduwhsgxdhlxcl.supabase.co/storage/v1/object/public/FeedImages/" + logoName;
                         Request imageNameRequest = new Request.Builder().url(imageUrl).addHeader("apikey", key).addHeader("Authorization", "Bearer " + key).build();
 
-                        try (Response imageResponse = client.newCall(request).execute()) {
+                        try (Response imageResponse = client.newCall(imageNameRequest).execute()) {
                             if (imageResponse.body() != null) {
                                 byte[] imageBytes = imageResponse.body().bytes();
                                 Bitmap bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
@@ -124,37 +123,40 @@ public class ChangeRSSFeeds extends AppCompatActivity {
                 throw new RuntimeException(e);
             }
             if (names != null) {
-                LinearLayout mainContainer = findViewById(R.id.LLMain);
-                for (int i = 0; i < names.size(); i++) {
-                    Log.i("LOG", "2-Printing");
-                    //Create button
-                    LinearLayout newLayout = new LinearLayout(ChangeRSSFeeds.this);
-                    CheckBox newCB = new CheckBox(ChangeRSSFeeds.this);
-                    newCB.setText(names.get(i));//RSS Feed Name
-                    String link = links.get(i);
-                    int index = i;
-                    newCB.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                            if (isChecked) {
-                                prefLinks.add(links.get(index));
-                            } else {
-                                prefLinks.remove(links.get(index));
+                runOnUiThread(() -> {
+                    LinearLayout mainContainer = findViewById(R.id.LLMain);
+                    for (int i = 0; i < names.size(); i++) {
+                        Log.i("LOG", "2-Printing");
+                        //Create button
+                        LinearLayout newLayout = new LinearLayout(ChangeRSSFeeds.this);
+                        CheckBox newCB = new CheckBox(ChangeRSSFeeds.this);
+                        newCB.setText(names.get(i));//RSS Feed Name
+                        String link = links.get(i);
+                        int index = i;
+                        newCB.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                            @Override
+                            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                                if (isChecked) {
+                                    prefLinks.add(links.get(index));
+                                } else {
+                                    prefLinks.remove(links.get(index));
+                                }
                             }
-                        }
-                    });
-                    newLayout.addView(newCB);
+                        });
 
-                    ImageView newLogo = new ImageView(ChangeRSSFeeds.this);
-                    newLogo.setImageBitmap(images.get(i));
-                    newLayout.addView(newLogo);
+                        ImageView newLogo = new ImageView(ChangeRSSFeeds.this);
+                        newLogo.setImageBitmap(images.get(i));
 
-                    runOnUiThread(() -> {
+                        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(205,350);
+                        newCB.setLayoutParams(lp);
+                        newLogo.setLayoutParams(lp);
+
+                        newLayout.addView(newCB);
+                        newLayout.addView(newLogo);
                         mainContainer.addView(newLayout);
-                    });
-                }
-            }
-        }).start();
+                    }
+                });
+            }}).start();
     }
 
 }

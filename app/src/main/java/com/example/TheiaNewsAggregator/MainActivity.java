@@ -1,17 +1,15 @@
 package com.example.TheiaNewsAggregator;
 
-import static android.content.res.Configuration.UI_MODE_NIGHT_MASK;
-
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -19,8 +17,11 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
 import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -31,16 +32,14 @@ import com.google.gson.reflect.TypeToken;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -61,142 +60,88 @@ public class MainActivity extends AppCompatActivity {
         scrollPlaylist.setVisibility(View.GONE);
 
         Button mainBtn = findViewById(R.id.MainBtn);
-        mainBtn.setOnClickListener(new View.OnClickListener(){
-            public void onClick(View v){
+        mainBtn.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
                 scrollPlaylist.setVisibility(View.GONE);
                 scrollMain.setVisibility(View.VISIBLE);
             }
         });
 
         Button playListBtn = findViewById(R.id.PlaylistBtn);
-        playListBtn.setOnClickListener(new View.OnClickListener(){
-            public void onClick(View v){
+        playListBtn.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
                 scrollMain.setVisibility(View.GONE);
                 scrollPlaylist.setVisibility(View.VISIBLE);
             }
         });
         @SuppressLint({"MissingInflatedId", "LocalSuppress"}) ImageButton settingsButton = findViewById(R.id.settingsBtn);
-        settingsButton.setOnClickListener(new View.OnClickListener(){
-            public void onClick(View v){
+        settingsButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
                 Intent senderIntent = new Intent(MainActivity.this, Article_Display.class);
                 senderIntent.putExtra("PreviousActivity", "MainActivity");
                 startActivity(new Intent(MainActivity.this, Settings.class));
             }
         });
-
-//        SharedPreferences prefs = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
-//        SharedPreferences.Editor editor = prefs.edit();
-//        Gson gson = new Gson();
-//        List<String> myList = Arrays.asList("apple", "banana", "cherry");
-//        String json = gson.toJson(myList);
-//        prefs.edit().putString("my_list", json).apply();
-//
-//        String jsonString = prefs.getString("my_list", null);
-//        List<String> loaded = gson.fromJson(jsonString, new TypeToken<List<String>>(){}.getType());
-
-//        SettingsManager sm = new SettingsManager(this);
-//        Set<String> urls = sm.getSetting();
         SharedPreferences prefs = getSharedPreferences("Prefs", Context.MODE_PRIVATE);
+//        SharedPreferences.Editor editor = prefs.edit();
+//        editor.clear();
+//        editor.commit();
+
         Gson gson = new Gson();
         String jsonString = prefs.getString("feedUrls", null);
-        List<String> urls = gson.fromJson(jsonString, new TypeToken<List<String>>(){}.getType());
-        if(urls == null || urls.isEmpty()){
+        List<String> urls = gson.fromJson(jsonString, new TypeToken<List<String>>() {
+        }.getType());
+
+        if (urls == null || urls.isEmpty()) {
             List<String> list = new ArrayList<>();
-            list.add("https://feeds.bbci.co.uk/news/rss.xml?edition=uk");
+            list.add("https://www.rte.ie/feeds/rss/?index=/news/");
             String json = gson.toJson(list);
             prefs.edit().putString("feedUrls", json).apply();
             urls = new ArrayList<>();
-            urls.add("https://feeds.bbci.co.uk/news/rss.xml?edition=uk");
+            urls.add("https://www.rte.ie/feeds/rss/?index=/news/");
 
         }
 
         List<String> finalUrls = urls;
         new Thread(() -> {
             try {
-                for(int i = 0; i< finalUrls.size(); i++){
+                for (int i = 0; i < finalUrls.size(); i++) {
                     //These pull all of the Links, titles and thumbnails in the given RSS Feed.
                     String url = finalUrls.get(i);
-                    String sourceLinks = getLinks(url);
-                    String titles = getTitles(url);
-                    List<Bitmap> imageList = getImages(url);
+                    Log.i("URLOG", finalUrls.get(i));
 
-                    List<String> list = new ArrayList<>();
-                    List<String> titleList = new ArrayList<>();
-                    if (sourceLinks != null) {
-                        Collections.addAll(list, sourceLinks.split("\\R"));
-                        Collections.addAll(titleList, titles.split("\\R"));
-                    }else{
-                        Log.i("LOG", "sourcelinks Failed");
+                    List<RssArticle> articles = getArtDetails(url);
+                    if (articles == null || articles.isEmpty()){
+                        break;
                     }
-                    int uiTheme = UI_MODE_NIGHT_MASK;
-
-                    Log.i("List", list.toString());
 
                     runOnUiThread(() -> {
                         LinearLayout mainContainer = findViewById(R.id.LL1);
-                        LinearLayout playContainer = findViewById(R.id.LL2);
-                        for (int i2 = 2; i2 < list.size(); i2++) {
-                            String link = list.get(i2);
+                        for (int i2 = 0; i2 < articles.size(); i2++) {
+                            RssArticle article = articles.get(i2);
                             LinearLayout listMain = new LinearLayout(MainActivity.this);
-                            listMain.setLayoutParams(new LinearLayout.LayoutParams(
-                                    LinearLayout.LayoutParams.MATCH_PARENT,
-                                    LinearLayout.LayoutParams.WRAP_CONTENT));
+                            listMain.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
 
-                            //Creates Title and Thumbnail for each article
+                            LinearLayout.LayoutParams titleLp = new LinearLayout.LayoutParams(205,350);
                             TextView tv1 = new TextView(MainActivity.this);
-                            LinearLayout.LayoutParams lp =
-                                    new LinearLayout.LayoutParams(
-                                            205,   // width in pixels
-                                            LinearLayout.LayoutParams.MATCH_PARENT
-                                    );
-                            tv1.setLayoutParams(lp);
-                            tv1.setText(titleList.get(i2));
-                            tv1.setLayoutParams(lp);
-                            ImageView iv1 = new ImageView(MainActivity.this);
-                            iv1.setImageBitmap(imageList.get(i2-2));
-                            iv1.setLayoutParams(lp);
+                            tv1.setText(article.title);
+                            tv1.setLayoutParams(titleLp);
 
-                            listMain.setBackgroundColor(uiTheme);
-                            listMain.setOnClickListener(new View.OnClickListener(){
-                                public void onClick(View v){
-                                    Intent senderIntent = new Intent(MainActivity.this, Article_Display.class);
-                                    senderIntent.putExtra("uri", link);
-                                    senderIntent.putExtra("PreviousActivity", "MainActivity");
-                                    startActivity(senderIntent);
-                                }
+                            LinearLayout.LayoutParams imageLp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,350);
+                            ImageView iv1 = new ImageView(MainActivity.this);
+                            iv1.setImageBitmap(article.image);
+                            iv1.setLayoutParams(imageLp);
+
+                            String link = article.link;
+                            listMain.setOnClickListener(v -> {
+                                Intent intent = new Intent(MainActivity.this, Article_Display.class);
+                                intent.putExtra("uri", link);
+                                startActivity(intent);
                             });
+
                             listMain.addView(tv1);
                             listMain.addView(iv1);
                             mainContainer.addView(listMain);
-                        }
-                        //Site Playlists
-                        for (int i3 = 0; i3 <= 2; i3++) {
-                            Log.i("LOG", "Hello");
-                            LinearLayout listPlay = new LinearLayout(MainActivity.this);
-                            listPlay.setLayoutParams(new LinearLayout.LayoutParams(
-                                    LinearLayout.LayoutParams.MATCH_PARENT,
-                                    LinearLayout.LayoutParams.WRAP_CONTENT));
-
-                            //Creates Title and Thumbnail for each Playlist
-                            ImageView folder = new ImageView(MainActivity.this);
-                            folder.setImageDrawable(Drawable.createFromPath("@android:drawable/file.png"));
-                            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(205, LinearLayout.LayoutParams.MATCH_PARENT);
-                            folder.setLayoutParams(lp);
-
-                            TextView playListName = new TextView(MainActivity.this);
-                            playListName.setText("Temp");
-                            listPlay.addView(folder);
-                            listPlay.addView(playListName);
-                            listPlay.setOnClickListener(new View.OnClickListener(){
-                                public void onClick(View v){
-//                                Intent senderIntent = new Intent(MainActivity.this, Article_Display.class);
-//                                senderIntent.putExtra("uri", link);
-//                                finish();
-//                                startActivity(senderIntent);
-                                }
-                            });
-
-                            playContainer.addView(listPlay);
                         }
                     });
 
@@ -206,155 +151,112 @@ public class MainActivity extends AppCompatActivity {
             }
         }).start();
     }
-    public static String getLinks(String urlAddress) throws IOException{
-        try{
-            URL rssUrl = new URL(urlAddress);
 
-            BufferedReader in =new BufferedReader(new InputStreamReader(rssUrl.openStream()));
+    public static List<RssArticle> getArtDetails(String feedUrl) throws IOException {
+        try {
 
-            String line = in.readLine();
-            StringBuilder sCode = new StringBuilder();
+            URL rssUrl = new URL(feedUrl);
 
-            if (line != null) {
-                sCode.append(line);
-            }
-            while((line = in.readLine())!= null){
-                if(line.contains("<link>")){
-                    int firstPos = line.indexOf("<link>");
-                    String temp = line.substring(firstPos);
-                    temp = temp.replace("<link>","");
-                    int lastPos = temp.indexOf("</link>");
-                    temp = temp.substring(0,lastPos);
-                    sCode.append(temp).append("\n");
-                }
-            }
-
-            in.close();
-
-            return sCode.toString();
-        } catch (MalformedURLException mue){
-            System.out.println("Malformed URL");
-        } catch (IOException ioe){
-            System.out.println("Something went wrong reading the contents");
-        }
-        return null;
-    }
-    public static String getTitles(String urlAddress) throws IOException{
-        try{
-            URL rssUrl = new URL(urlAddress);
-
-            BufferedReader in =new BufferedReader(new InputStreamReader(rssUrl.openStream()));
+            BufferedReader in = new BufferedReader(new InputStreamReader(rssUrl.openStream()));
 
             String line = in.readLine();
             StringBuilder sCode = new StringBuilder();
 
-            if (line != null) {
-                sCode.append(line);
-            }
-            while((line = in.readLine())!= null){
-                if(line.contains("<title>")){
-                    int firstPos = line.indexOf("<title>");
-                    String temp = line.substring(firstPos);
-                    temp = getString(temp);
-                    if(temp.contains("<![CDATA[")){
-                        temp = temp.replace("<![CDATA[","");
-                        temp = temp.replace("]]>","");
-                    }
-                    int lastPos = temp.indexOf("</title>");
-                    temp = temp.substring(0,lastPos);
-                    sCode.append(temp).append("\n");
-                }
-            }
+            OkHttpClient client = new OkHttpClient.Builder()
+                    .followRedirects(true)
+                    .build();
 
-            in.close();
-
-            return sCode.toString();
-        } catch (MalformedURLException mue){
-            System.out.println("Malformed URL");
-        } catch (IOException ioe){
-            System.out.println("Something went wrong reading the contents");
-        }
-        return null;
-    }
-
-    @NonNull
-    private static String getString(String temp) {
-        temp = temp.replace("<title>","");
-        return temp;
-    }
-
-    public static List<Bitmap> getImages(String urlAddress) throws IOException{
-        try{
-            URL rssUrl = new URL(urlAddress);
-
-            BufferedReader in =new BufferedReader(new InputStreamReader(rssUrl.openStream()));
-
-            String line = in.readLine();
-            StringBuilder sCode = new StringBuilder();
-            List<String> images = new ArrayList<>();
-
-            if (line != null) {
-                sCode.append(line);
-            }
-            while((line = in.readLine())!= null){
-                if(line.contains("<media:thumbnail")){
-                    line = line.substring(line.indexOf("url=\""), line.indexOf("\"/>"));
-                    String temp = line.replace("url=\"", "");
-                    images.add(temp);
-                }
-            }
-            List<Bitmap> bitmaps = new ArrayList<>();
-            for(int i = 0; i < images.size(); i++) {
-                URL url = new URL(images.get(i));
-                try {
-                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                    connection.setDoInput(true);
-                    connection.connect();
-                    InputStream input = connection.getInputStream();
-                    Bitmap myBitmap = BitmapFactory.decodeStream(input);
-                    bitmaps.add(myBitmap);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    Log.e("Exception", e.getMessage());
+            Request request = new Request.Builder()
+                    .url(feedUrl)
+                    .header("User-Agent", "RssFeedParser2/1.0")
+                    .build();
+            String valResponse;
+            try (Response response = client.newCall(request).execute()) {
+                if (!response.isSuccessful()) {
+                    System.out.println("HTTP error: " + response.code());
                     return null;
                 }
+                valResponse = response.body().string();
             }
-            return bitmaps;
-        } catch (MalformedURLException mue){
+
+            Pattern ITEM_PATTERN = Pattern.compile("<item[^>]*>(.*?)</item>", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+
+            Pattern TITLE_PATTERN = Pattern.compile("<title[^>]*>\\s*(?:<!\\[CDATA\\[)?(.*?)(?:]]>)?\\s*</title>", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+
+            Pattern LINK_PATTERN = Pattern.compile("<link[^>]*>\\s*(?:<!\\[CDATA\\[)?(.*?)(?:]]>)?\\s*</link>", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+
+
+            Matcher articleMatcher = ITEM_PATTERN.matcher(valResponse);
+
+            List<RssArticle> articles = new ArrayList<>();
+
+            while (articleMatcher.find()) {
+                String block = articleMatcher.group(1);
+                RssArticle article = new RssArticle();
+
+                article.title = findString(TITLE_PATTERN, block);
+                article.link = findString(LINK_PATTERN, block);
+                article.image = findImage(block);
+
+                // Clean up any stray whitespace / newlines
+                if (article.title != null){
+                    article.title = article.title.strip();
+                }
+
+                if (article.link != null) {
+                    article.link = article.link.strip();
+                }
+                articles.add(article);
+
+            }
+            return articles;
+        }catch (MalformedURLException mue) {
             System.out.println("Malformed URL");
-        } catch (IOException ioe){
+        } catch (IOException ioe) {
             System.out.println("Something went wrong reading the contents");
         }
         return null;
     }
-    public class ConnectToSupabase {
-//        String SUPABASE_URL = "https://zganowuduwhsgxdhlxcl.supabase.co";
-//        String SUPABASE_KEY = "sb_publishable_vSfZh1SKFxeBtuTdmErOSQ_hI7Ml1rU";
-//
-//        OkHttpClient client = new OkHttpClient();
-//
-//        Request request = new Request.Builder()
-//                .url(SUPABASE_URL + "/rest/v1/your_table?select=*")
-//                .get()
-//                .addHeader("apikey", SUPABASE_KEY)
-//                .addHeader("Authorization", "Bearer " + SUPABASE_KEY)
-//                .addHeader("Content-Type", "application/json")
-//                .build();
 
-//        client.newCall(request).enqueue(new Callback() {
-//            @Override
-//            public void onFailure(Call call, IOException e) {
-//                e.printStackTrace();
-//            }
-//
-//            @Override
-//            public void onResponse(Call call, Response response) throws IOException {
-//                if (response.isSuccessful()) {
-//                    String responseData = response.body().string();
-//                    // Parse JSON with Gson
-//                    Log.d("Supabase", responseData);
-//                }
-//            }
-//        });
+    private static String findString(Pattern pattern, String text) {
+        Matcher m = pattern.matcher(text);
+
+        if(m.find()){
+            return m.group(1);
+        }
+        return null;
+    }
+
+
+    private static Bitmap findImage(String block) throws IOException {
+        Pattern IMG_PATTERN_1 = Pattern.compile("<media:(?:content|thumbnail)[^>]+url=[\"'](.*?)[\"']", Pattern.CASE_INSENSITIVE);
+
+        Pattern IMG_PATTERN_2 = Pattern.compile("<enclosure[^>]+url=[\"'](.*?)[\"'][^>]+type=[\"']image/", Pattern.CASE_INSENSITIVE);
+
+        Pattern IMG_PATTERN_3 = Pattern.compile("<img[^>]+src=[\"'](.*?)[\"']", Pattern.CASE_INSENSITIVE);
+
+        String img = findString(IMG_PATTERN_1, block);
+        if (img != null){
+            URL imgUrl = new URL(img);
+            return BitmapFactory.decodeStream(imgUrl.openStream());
+        }
+
+        img = findString(IMG_PATTERN_2, block);
+        if (img != null){
+            URL imgUrl = new URL(img);
+            return BitmapFactory.decodeStream(imgUrl.openStream());
+        }
+
+        img = findString(IMG_PATTERN_3, block);
+        if(img != null){
+            URL imgUrl = new URL(img);
+            return BitmapFactory.decodeStream(imgUrl.openStream());
+        }
+        return null;
+    }
+    public static class RssArticle {
+        public String title;
+        public String link;
+        public Bitmap image;
     }
 }
