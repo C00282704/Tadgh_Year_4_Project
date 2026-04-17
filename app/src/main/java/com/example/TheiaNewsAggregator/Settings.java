@@ -1,6 +1,5 @@
 package com.example.TheiaNewsAggregator;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -25,11 +24,24 @@ public class Settings extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        Button exitButton = findViewById(R.id.homeButton);
+        exitButton.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View v){
+                startActivity(new Intent(Settings.this, MainActivity.class));
+            }
+        });
+
         Button rssbutton = findViewById(R.id.rssFeedsBtn);
         rssbutton.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
-                finish();
                 startActivity(new Intent(Settings.this, ChangeRSSFeeds.class));
+            }
+        });
+        Button creditsButton = findViewById(R.id.creditsBtn);
+        creditsButton.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View v){
+                startActivity(new Intent(Settings.this, Credits.class));
             }
         });
     }

@@ -80,7 +80,6 @@ public class Article_Display extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent senderIntent = new Intent(Article_Display.this, MainActivity.class);
-                finish();
                 tts.stop();
                 tts.shutdown();
                 startActivity(senderIntent);

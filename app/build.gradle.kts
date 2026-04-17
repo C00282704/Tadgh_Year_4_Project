@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.google.gms.google.services)
-    alias(libs.plugins.google.firebase.crashlytics)
 }
 
 android {
@@ -41,14 +40,13 @@ dependencies {
     implementation(libs.activity)
     implementation(libs.constraintlayout)
     implementation(libs.cardview)
-    implementation(libs.firebase.crashlytics)
-    implementation(libs.firebase.crashlytics.buildtools)
+    implementation(libs.datastore.preferences.rxjava3)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
     implementation("org.jsoup:jsoup:1.22.1")
-    implementation(platform("com.google.firebase:firebase-bom:34.9.0"))
-    implementation("com.google.firebase:firebase-analytics")
-    implementation("com.squareup.okhttp3:okhttp:4.11.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.google.code.gson:gson:2.10.1")
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 }
