@@ -9,7 +9,6 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -30,9 +29,7 @@ import androidx.core.view.WindowInsetsCompat;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -59,34 +56,19 @@ public class MainActivity extends AppCompatActivity {
         scrollMain.setVisibility(View.VISIBLE);
         scrollPlaylist.setVisibility(View.GONE);
 
-        Button mainBtn = findViewById(R.id.MainBtn);
-        mainBtn.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                scrollPlaylist.setVisibility(View.GONE);
-                scrollMain.setVisibility(View.VISIBLE);
-            }
-        });
-
         Button playListBtn = findViewById(R.id.PlaylistBtn);
         playListBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                scrollMain.setVisibility(View.GONE);
-                scrollPlaylist.setVisibility(View.VISIBLE);
+                startActivity(new Intent(MainActivity.this, MainPlaylists.class));
             }
         });
         @SuppressLint({"MissingInflatedId", "LocalSuppress"}) ImageButton settingsButton = findViewById(R.id.settingsBtn);
         settingsButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                Intent senderIntent = new Intent(MainActivity.this, Article_Display.class);
-                senderIntent.putExtra("PreviousActivity", "MainActivity");
                 startActivity(new Intent(MainActivity.this, Settings.class));
             }
         });
         SharedPreferences prefs = getSharedPreferences("Prefs", Context.MODE_PRIVATE);
-//        SharedPreferences.Editor editor = prefs.edit();
-//        editor.clear();
-//        editor.commit();
-
         Gson gson = new Gson();
         String jsonString = prefs.getString("feedUrls", null);
         List<String> urls = gson.fromJson(jsonString, new TypeToken<List<String>>() {
@@ -101,7 +83,6 @@ public class MainActivity extends AppCompatActivity {
             urls.add("https://www.rte.ie/feeds/rss/?index=/news/");
 
         }
-
         List<String> finalUrls = urls;
         new Thread(() -> {
             try {
@@ -110,9 +91,9 @@ public class MainActivity extends AppCompatActivity {
                     String url = finalUrls.get(i);
                     Log.i("URLOG", finalUrls.get(i));
 
-                    List<RssArticle> articles = getArtDetails(url);
+                    List<RssArticle> articles = getFeedDetails(url);
                     if (articles == null || articles.isEmpty()){
-                        break;
+                        continue;
                     }
 
                     runOnUiThread(() -> {
@@ -133,6 +114,7 @@ public class MainActivity extends AppCompatActivity {
                             iv1.setLayoutParams(imageLp);
 
                             String link = article.link;
+                            Log.i("LINKS", link);
                             listMain.setOnClickListener(v -> {
                                 Intent intent = new Intent(MainActivity.this, Article_Display.class);
                                 intent.putExtra("uri", link);
@@ -152,24 +134,11 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
-    public static List<RssArticle> getArtDetails(String feedUrl) throws IOException {
+    public static List<RssArticle> getFeedDetails(String feedUrl) throws IOException {
         try {
+            OkHttpClient client = new OkHttpClient.Builder().followRedirects(true).build();
 
-            URL rssUrl = new URL(feedUrl);
-
-            BufferedReader in = new BufferedReader(new InputStreamReader(rssUrl.openStream()));
-
-            String line = in.readLine();
-            StringBuilder sCode = new StringBuilder();
-
-            OkHttpClient client = new OkHttpClient.Builder()
-                    .followRedirects(true)
-                    .build();
-
-            Request request = new Request.Builder()
-                    .url(feedUrl)
-                    .header("User-Agent", "RssFeedParser2/1.0")
-                    .build();
+            Request request = new Request.Builder().url(feedUrl).header("User-Agent", "RssFeedParser2/1.0").build();
             String valResponse;
             try (Response response = client.newCall(request).execute()) {
                 if (!response.isSuccessful()) {
@@ -198,7 +167,6 @@ public class MainActivity extends AppCompatActivity {
                 article.link = findString(LINK_PATTERN, block);
                 article.image = findImage(block);
 
-                // Clean up any stray whitespace / newlines
                 if (article.title != null){
                     article.title = article.title.strip();
                 }
@@ -211,9 +179,9 @@ public class MainActivity extends AppCompatActivity {
             }
             return articles;
         }catch (MalformedURLException mue) {
-            System.out.println("Malformed URL");
+            Log.i("Error", mue.toString());
         } catch (IOException ioe) {
-            System.out.println("Something went wrong reading the contents");
+            Log.i("Error", ioe.toString());
         }
         return null;
     }

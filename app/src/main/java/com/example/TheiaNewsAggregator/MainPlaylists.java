@@ -63,29 +63,29 @@ public class MainPlaylists extends AppCompatActivity {
                 EditText input = new EditText(v.getContext());
                 input.setHint("Enter NEW playlist name");
                 new AlertDialog.Builder(v.getContext()).setTitle("New Playlist").setView(input).setPositiveButton("Create", (dialog, which) -> {
-                    String userText = input.getText().toString();
-                    if (!userText.isEmpty()) {
-                        SharedPreferences prefs = getSharedPreferences("Prefs", Context.MODE_PRIVATE);
-                        Gson gson = new Gson();
+                            String userText = input.getText().toString();
+                            if (!userText.isEmpty()) {
+                                SharedPreferences prefs = getSharedPreferences("Prefs", Context.MODE_PRIVATE);
+                                Gson gson = new Gson();
 
-                        prefs.edit().putString(userText, gson.toJson(new ArrayList<>())).apply();
+                                prefs.edit().putString(userText, gson.toJson(new ArrayList<>())).apply();
 
-                        String jsonString = prefs.getString("Playlists", null);
-                        List<String> playlists;
-                        if (jsonString != null) {
-                            playlists = gson.fromJson(jsonString, new TypeToken<List<String>>() {}.getType());
-                        } else {
-                            playlists = new ArrayList<>();
-                        }
-                        playlists.add(userText);
-                        prefs.edit().putString("Playlists", gson.toJson(playlists)).apply();
-                    }
-                    finish();
-                    Intent intent = new Intent(MainPlaylists.this, MainPlaylists.class);
-                    startActivity(intent);
-                })
-                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
-                .show();
+                                String jsonString = prefs.getString("Playlists", null);
+                                List<String> playlists;
+                                if (jsonString != null) {
+                                    playlists = gson.fromJson(jsonString, new TypeToken<List<String>>() {}.getType());
+                                } else {
+                                    playlists = new ArrayList<>();
+                                }
+                                playlists.add(userText);
+                                prefs.edit().putString("Playlists", gson.toJson(playlists)).apply();
+                            }
+                            finish();
+                            Intent intent = new Intent(MainPlaylists.this, MainPlaylists.class);
+                            startActivity(intent);
+                        })
+                        .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                        .show();
             }
         });
 
@@ -112,7 +112,7 @@ public class MainPlaylists extends AppCompatActivity {
                         title.setTextSize(1 , 25);
 
                         ImageView folder = new ImageView(MainPlaylists.this);
-                        folder.setImageDrawable(getDrawable(R.drawable.folder));
+                        folder.setImageDrawable(getDrawable(R.drawable.file));
                         newLayout.addView(folder);
                         newLayout.addView(title);
                         String pl = prefs.getString(playlists.get(i), null);
