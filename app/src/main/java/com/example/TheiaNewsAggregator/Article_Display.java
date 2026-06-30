@@ -2,16 +2,21 @@ package com.example.TheiaNewsAggregator;
 import static com.example.TheiaNewsAggregator.R.id.textToSpeechButton;
 import static java.util.Locale.ENGLISH;
 
+import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
+import android.util.Log;
 import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,11 +24,18 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class Article_Display extends AppCompatActivity {
 
     TextToSpeech tts;
     Boolean ttsPressed = false;
     ImageButton ttsButton;
+    ImageButton favorited;
     TextView contentView;
     WebView article;
     boolean ttsDone;
@@ -70,19 +82,57 @@ public class Article_Display extends AppCompatActivity {
             }
         });
 
-
-
         article = findViewById(R.id.WebView);
         article.loadUrl(uri);
 
-        ImageButton iButton = findViewById(R.id.returnButton);
-        iButton.setOnClickListener(new View.OnClickListener(){
+        favorited = findViewById(R.id.favoriteButton);
+        SharedPreferences prefs = getSharedPreferences("Prefs", Context.MODE_PRIVATE);
+        Gson gson = new Gson();
+
+        String jsonString = prefs.getString("Playlists", null);
+        List<String> playlists;
+        if (jsonString != null) {
+            playlists = gson.fromJson(jsonString, new TypeToken<List<String>>() {}.getType());
+        } else {
+            playlists = new ArrayList<>();
+        }
+
+        favorited.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent senderIntent = new Intent(Article_Display.this, MainActivity.class);
-                tts.stop();
-                tts.shutdown();
-                startActivity(senderIntent);
+                if (playlists.isEmpty()) {
+                    Toast.makeText(view.getContext(), "No playlists available", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                final int[] selectedIndex = {-1};
+                String[] playlistArray = playlists.toArray(new String[0]);
+
+                new AlertDialog.Builder(view.getContext())
+                        .setTitle("Save to Playlist")
+                        .setSingleChoiceItems(playlistArray, -1, (dialog, which) -> {
+                            selectedIndex[0] = which;
+                        })
+                        .setPositiveButton("Save", (dialog, which) -> {
+                            if (selectedIndex[0] == -1) {
+                                Toast.makeText(view.getContext(), "Please select a Playlist", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+                            String selectedPlaylist = playlistArray[selectedIndex[0]];
+                            Log.i("SELPLAYLIST", selectedPlaylist);
+                            String newJSON = prefs.getString(selectedPlaylist, null);
+                            List<String> pl;
+                            if(newJSON != null){
+                                pl = gson.fromJson(newJSON, new TypeToken<List<String>>() {}.getType());
+                            }else{
+                                pl = new ArrayList<>();
+                            }
+
+                            pl.add(uri);
+                            prefs.edit().putString(selectedPlaylist, gson.toJson(pl)).apply();
+                        })
+                        .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                        .show();
             }
         });
         contentView = (TextView) findViewById(R.id.contentView);

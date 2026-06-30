@@ -23,10 +23,11 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/Theia"
-            android:textColor="@color/white"
             android:textAlignment="center"
+            android:textColor="@color/white"
             android:textSize="48sp" />
     </LinearLayout>
+
 
     <ScrollView
         android:id="@+id/MainScroll"
@@ -37,7 +38,8 @@
         android:layout_marginBottom="1dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout2">
 
         <LinearLayout
             android:id="@+id/LL1"
@@ -46,15 +48,20 @@
             android:orientation="vertical" />
     </ScrollView>
 
-    <androidx.constraintlayout.widget.Guideline android:layout_width="wrap_content"
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline3"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
     <LinearLayout
+        android:id="@+id/linearLayout2"
         android:layout_width="409dp"
         android:layout_height="44dp"
+        android:layout_marginTop="1dp"
         android:orientation="horizontal"
-        tools:layout_editor_absoluteX="1dp"
-        tools:layout_editor_absoluteY="91dp">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/Header">
 
         <Button
             android:id="@+id/MainBtn"
@@ -70,5 +77,27 @@
             android:layout_weight="1"
             android:text="@string/Playlists" />
     </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/addPlaylistButton"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginEnd="20dp"
+        android:background="@color/white"
+        android:scaleType="fitCenter"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/MainScroll"
+        app:srcCompat="@android:drawable/ic_menu_add" />
+    <ImageButton
+        android:id="@+id/settingsBtn"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_weight="1"
+        android:scaleType="fitCenter"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/settingscog" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

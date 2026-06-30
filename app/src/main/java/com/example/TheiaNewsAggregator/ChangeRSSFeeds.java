@@ -13,17 +13,14 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
-import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -99,7 +96,7 @@ public class ChangeRSSFeeds extends AppCompatActivity {
                     }
                 }
 
-                for (int i = 0; i < jsonArray.length(); i++) {//Get the name for each Site for the CheckBox Names
+                for (int i = 0; i < jsonArray.length(); i++) {//Get the logo for each Site for the CheckBox Names
                     JSONObject row = jsonArray.getJSONObject(i);
                     if (!row.getString("logoName").isEmpty()) {
                         String logoName = row.getString("logoName");
