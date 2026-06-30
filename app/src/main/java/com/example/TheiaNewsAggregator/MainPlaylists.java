@@ -68,15 +68,16 @@ public class MainPlaylists extends AppCompatActivity {
                                 SharedPreferences prefs = getSharedPreferences("Prefs", Context.MODE_PRIVATE);
                                 Gson gson = new Gson();
 
-                                prefs.edit().putString(userText, gson.toJson(new ArrayList<>())).apply();
+                                //prefs.edit().putString(userText, gson.toJson(new ArrayList<>())).apply();
 
                                 String jsonString = prefs.getString("Playlists", null);
                                 List<String> playlists;
                                 if (jsonString != null) {
-                                    playlists = gson.fromJson(jsonString, new TypeToken<List<String>>() {}.getType());
+                                    playlists = gson.fromJson(jsonString, new TypeToken<List<List<String,String>>>() {}.getType());
                                 } else {
                                     playlists = new ArrayList<>();
                                 }
+                                
                                 playlists.add(userText);
                                 prefs.edit().putString("Playlists", gson.toJson(playlists)).apply();
                             }
