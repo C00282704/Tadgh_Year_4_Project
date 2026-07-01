@@ -71,14 +71,14 @@ public class MainPlaylists extends AppCompatActivity {
                                 //prefs.edit().putString(userText, gson.toJson(new ArrayList<>())).apply();
 
                                 String jsonString = prefs.getString("Playlists", null);
-                                List<String> playlists;
+                                List<Playlist> playlists;
                                 if (jsonString != null) {
-                                    playlists = gson.fromJson(jsonString, new TypeToken<List<List<String,String>>>() {}.getType());
+                                    playlists = gson.fromJson(jsonString, new TypeToken<List<Playlist>>() {}.getType());
                                 } else {
-                                    playlists = new ArrayList<>();
+                                    playlists = new ArrayList<Playlist>();
                                 }
                                 
-                                playlists.add(userText);
+                                playlists.add(new playlist(userText));
                                 prefs.edit().putString("Playlists", gson.toJson(playlists)).apply();
                             }
                             finish();

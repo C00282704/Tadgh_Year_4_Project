@@ -90,11 +90,11 @@ public class Article_Display extends AppCompatActivity {
         Gson gson = new Gson();
 
         String jsonString = prefs.getString("Playlists", null);
-        List<String> playlists;
+        List<Playlist> playlists;
         if (jsonString != null) {
-            playlists = gson.fromJson(jsonString, new TypeToken<List<String>>() {}.getType());
+            playlists = gson.fromJson(jsonString, new TypeToken<List<Playlist>>() {}.getType());
         } else {
-            playlists = new ArrayList<>();
+            playlists = new ArrayList<Playlist>();
         }
 
         favorited.setOnClickListener(new View.OnClickListener() {
@@ -106,7 +106,7 @@ public class Article_Display extends AppCompatActivity {
                 }
 
                 final int[] selectedIndex = {-1};
-                String[] playlistArray = playlists.toArray(new String[0]);
+                Playlist[] playlistArray = playlists.toArray(new Playlist[0]);
 
                 new AlertDialog.Builder(view.getContext())
                         .setTitle("Save to Playlist")
@@ -118,18 +118,33 @@ public class Article_Display extends AppCompatActivity {
                                 Toast.makeText(view.getContext(), "Please select a Playlist", Toast.LENGTH_SHORT).show();
                                 return;
                             }
-                            String selectedPlaylist = playlistArray[selectedIndex[0]];
-                            Log.i("SELPLAYLIST", selectedPlaylist);
-                            String newJSON = prefs.getString(selectedPlaylist, null);
-                            List<String> pl;
-                            if(newJSON != null){
-                                pl = gson.fromJson(newJSON, new TypeToken<List<String>>() {}.getType());
-                            }else{
-                                pl = new ArrayList<>();
-                            }
+                            String name = uri
+                            //Lets user change name of article entered into playlist
+                            EditText input = new EditText(v.getContext());
+                            input.setHint("So you want to change the articles name");
+                            new AlertDialog.Builder(v.getContext()).setTitle("New Playlist").setView(input).setPositiveButton("Create", (dialog, which) -> {
+                                String name = input.getText().toString();
+                            })
+                            .setNegativeButton("Cancel", (dialog, which) -> {
+                                dialog.dismiss()
+                                
+                            })
+                            .show();
 
-                            pl.add(uri);
-                            prefs.edit().putString(selectedPlaylist, gson.toJson(pl)).apply();
+                            playlistArray[selectedIndex[0]].add(Article(name, uri))
+
+                            // String selectedPlaylist = playlistArray[selectedIndex[0]];
+                            // Log.i("SELPLAYLIST", selectedPlaylist);
+                            // String newJSON = prefs.getString(selectedPlaylist, null);
+                            // List<String> pl;
+                            // if(newJSON != null){
+                            //     pl = gson.fromJson(newJSON, new TypeToken<List<String>>() {}.getType());
+                            // }else{
+                            //     pl = new ArrayList<>();
+                            // }
+
+                            // pl.add(uri);
+                            // prefs.edit().putString(selectedPlaylist, gson.toJson(pl)).apply();
                         })
                         .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
                         .show();
