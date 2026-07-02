@@ -17,6 +17,8 @@ import android.webkit.WebViewClient;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.EditText;
+import android.widget.Button;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -80,6 +82,11 @@ public class Article_Display extends AppCompatActivity {
             public void onStart(String s) {
                 ttsDone = false;
             }
+
+            @Override
+            public void onDestroy(String s){
+                tts.shutdown();
+            }
         });
 
         article = findViewById(R.id.WebView);
@@ -118,33 +125,25 @@ public class Article_Display extends AppCompatActivity {
                                 Toast.makeText(view.getContext(), "Please select a Playlist", Toast.LENGTH_SHORT).show();
                                 return;
                             }
-                            String name = uri
                             //Lets user change name of article entered into playlist
-                            EditText input = new EditText(v.getContext());
-                            input.setHint("So you want to change the articles name");
-                            new AlertDialog.Builder(v.getContext()).setTitle("New Playlist").setView(input).setPositiveButton("Create", (dialog, which) -> {
-                                String name = input.getText().toString();
-                            })
-                            .setNegativeButton("Cancel", (dialog, which) -> {
-                                dialog.dismiss()
-                                
-                            })
-                            .show();
+                            EditText input = new EditText(view.getContext());
+                            input.setHint("Change Article Name");
+                            String playlistName = playlistArray[selectedIndex[0]].getName();
 
-                            playlistArray[selectedIndex[0]].add(Article(name, uri))
-
-                            // String selectedPlaylist = playlistArray[selectedIndex[0]];
-                            // Log.i("SELPLAYLIST", selectedPlaylist);
-                            // String newJSON = prefs.getString(selectedPlaylist, null);
-                            // List<String> pl;
-                            // if(newJSON != null){
-                            //     pl = gson.fromJson(newJSON, new TypeToken<List<String>>() {}.getType());
-                            // }else{
-                            //     pl = new ArrayList<>();
-                            // }
-
-                            // pl.add(uri);
-                            // prefs.edit().putString(selectedPlaylist, gson.toJson(pl)).apply();
+                            new AlertDialog.Builder(view.getContext())
+                                .setTitle("Change Article Name?").setView(input)
+                                .setPositiveButton("Yes", (dialog, selectOpt) -> {
+                                    String name = input.getText().toString();
+                                    playlistArray[selectedIndex[0]].add(new Article(name, uri));
+                                    prefs.edit().putString("Playlists", gson.toJson(playlists)).apply();
+                                })
+                                .setNegativeButton("No", (dialog, selectOpt) -> {
+                                    dialog.dismiss();
+                                    String name = uri;
+                                    playlistArray[selectedIndex[0]].add(new Article(name, uri));
+                                    prefs.edit().putString("Playlists", gson.toJson(playlists)).apply();
+                                })
+                                .show();
                         })
                         .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
                         .show();

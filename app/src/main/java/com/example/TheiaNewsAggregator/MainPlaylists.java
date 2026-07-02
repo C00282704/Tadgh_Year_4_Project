@@ -62,7 +62,9 @@ public class MainPlaylists extends AppCompatActivity {
             public void onClick(View v) {
                 EditText input = new EditText(v.getContext());
                 input.setHint("Enter NEW playlist name");
-                new AlertDialog.Builder(v.getContext()).setTitle("New Playlist").setView(input).setPositiveButton("Create", (dialog, which) -> {
+                new AlertDialog.Builder(v.getContext())
+                    .setTitle("New Playlist").setView(input)
+                    .setPositiveButton("Create", (dialog, which) -> {
                             String userText = input.getText().toString();
                             if (!userText.isEmpty()) {
                                 SharedPreferences prefs = getSharedPreferences("Prefs", Context.MODE_PRIVATE);
