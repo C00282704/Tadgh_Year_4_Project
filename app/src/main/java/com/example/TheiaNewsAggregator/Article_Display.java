@@ -35,12 +35,11 @@ import java.util.List;
 public class Article_Display extends AppCompatActivity {
 
     TextToSpeech tts;
-    Boolean ttsPressed = false;
+    boolean ttsPressed = false;
     ImageButton ttsButton;
     ImageButton favorited;
     TextView contentView;
     WebView article;
-    boolean ttsDone;
 
     Thread thread1;
 
@@ -70,7 +69,7 @@ public class Article_Display extends AppCompatActivity {
         tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
             @Override
             public void onDone(String s) {
-                ttsDone = true;
+                
             }
 
             @Override
@@ -80,14 +79,21 @@ public class Article_Display extends AppCompatActivity {
 
             @Override
             public void onStart(String s) {
-                ttsDone = false;
-            }
-
-            @Override
-            public void onDestroy(String s){
-                tts.shutdown();
+                
             }
         });
+        
+        @Override
+        protected void onDestroy() {
+            super.onDestroy();
+            if (tts != null) {
+                tts.stop();
+                tts.shutdown();
+            }
+            if (thread1 != null && thread1.isAlive()) {
+                thread1.interrupt();
+            }
+        }
 
         article = findViewById(R.id.WebView);
         article.loadUrl(uri);
@@ -161,6 +167,26 @@ public class Article_Display extends AppCompatActivity {
                 contentView.post(new Runnable() {
                     public void run() {
                         contentView.setText(content);
+                            ttsButton = findViewById(textToSpeechButton);
+                            ttsButton.setOnClickListener(new View.OnClickListener(){
+                                @Override
+                                public void onClick(View view) {
+                                    if (ttsPressed == false) {
+                                        ttsButton.setImageResource(android.R.drawable.ic_lock_silent_mode_off);
+                                        ttsPressed = true;
+                                        String text = contentView.getText().toString();
+                                        thread1 = new Thread(new runTTS(text, tts));
+                                        thread1.start();
+
+                                    }
+                                    else {
+                                        ttsButton.setImageResource(android.R.drawable.ic_lock_silent_mode);
+                                        ttsPressed = false;
+                                        thread1.interrupt();
+                                        tts.stop();
+                                    }
+                                }
+                            });
                     }
                 });
             }
@@ -173,26 +199,6 @@ public class Article_Display extends AppCompatActivity {
             public void onPageFinished(WebView view, String url)
             {
                 view.loadUrl("javascript:window.INTERFACE.processContent(document.getElementsByTagName('body')[0].innerText);");
-            }
-        });
-        ttsButton = findViewById(textToSpeechButton);
-        ttsButton.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view) {
-                if (ttsPressed == false) {
-                    ttsButton.setImageResource(android.R.drawable.ic_lock_silent_mode_off);
-                    ttsPressed = true;
-                    String text = contentView.getText().toString();
-                    thread1 = new Thread(new runTTS(text, tts));
-                    thread1.start();
-
-                }
-                else {
-                    ttsButton.setImageResource(android.R.drawable.ic_lock_silent_mode);
-                    ttsPressed = false;
-                    thread1.interrupt();
-                    tts.stop();
-                }
             }
         });
     }
