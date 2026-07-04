@@ -1,3 +1,5 @@
+package com.example.TheiaNewsAggregator;
+
 public class Article {
     String name;
     String link;

@@ -52,18 +52,18 @@ public class PlaylistDisplay extends AppCompatActivity {
         ImageButton settingsButton = findViewById(R.id.settingsBtn);
         settingsButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                startActivity(new Intent(Playlist.this, Settings.class));
+                startActivity(new Intent(PlaylistDisplay.this, Settings.class));
             }
         });
 
         Intent receiverIntent = getIntent();
         String name = receiverIntent.getStringExtra("uri");
         if(Objects.equals(name, "")){
-            new AlertDialog.Builder(Playlist.this)
+            new AlertDialog.Builder(PlaylistDisplay.this)
                     .setTitle("Playlist Empty")
                     .setPositiveButton("Return", (dialog, which) -> {
                         finish();
-                        Intent intent = new Intent(Playlist.this, MainPlaylists.class);
+                        Intent intent = new Intent(PlaylistDisplay.this, MainPlaylists.class);
                         startActivity(intent);
                     })
                     .show();
@@ -73,54 +73,6 @@ public class PlaylistDisplay extends AppCompatActivity {
             String jsonString = prefs.getString(name, null);
 
             List<String> finalUrls = gson.fromJson(jsonString, new TypeToken<List<String>>() {}.getType());
-//            new Thread(() -> {
-//                try {
-//                    for (int i = 0; i < finalUrls.size(); i++) {
-//                        //These pull all of the Links, titles and thumbnails in the given RSS Feed.
-//                        String url = finalUrls.get(i);
-//                        Log.i("URLOG", finalUrls.get(i));
-//
-//                        List<MainActivity.RssArticle> articles = getImages(url);
-//                        if (articles == null || articles.isEmpty()){
-//                            continue;
-//                        }
-//
-//                        runOnUiThread(() -> {
-//                            LinearLayout mainContainer = findViewById(R.id.LL1);
-//                            for (int i2 = 0; i2 < articles.size(); i2++) {
-//                                MainActivity.RssArticle article = articles.get(i2);
-//                                LinearLayout listMain = new LinearLayout(Playlist.this);
-//                                listMain.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-//
-//                                LinearLayout.LayoutParams titleLp = new LinearLayout.LayoutParams(205,350);
-//                                TextView tv1 = new TextView(Playlist.this);
-//                                tv1.setText(article.title);
-//                                tv1.setLayoutParams(titleLp);
-//
-//                                LinearLayout.LayoutParams imageLp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,350);
-//                                ImageView iv1 = new ImageView(Playlist.this);
-//                                iv1.setImageBitmap(article.image);
-//                                iv1.setLayoutParams(imageLp);
-//
-//                                String link = article.link;
-//                                Log.i("LINKS", link);
-//                                listMain.setOnClickListener(v -> {
-//                                    Intent intent = new Intent(Playlist.this, Article_Display.class);
-//                                    intent.putExtra("uri", link);
-//                                    startActivity(intent);
-//                                });
-//
-//                                listMain.addView(tv1);
-//                                listMain.addView(iv1);
-//                                mainContainer.addView(listMain);
-//                            }
-//                        });
-//
-//                    }
-//                } catch (IOException e) {
-//                    Log.e("IOException:", Objects.requireNonNull(e.getMessage()));
-//                }
-//            }).start();
         }
     }
 

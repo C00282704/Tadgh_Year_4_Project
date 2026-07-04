@@ -43,6 +43,18 @@ public class Article_Display extends AppCompatActivity {
 
     Thread thread1;
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (tts != null) {
+            tts.stop();
+            tts.shutdown();
+        }
+        if (thread1 != null && thread1.isAlive()) {
+            thread1.interrupt();
+        }
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,18 +94,6 @@ public class Article_Display extends AppCompatActivity {
                 
             }
         });
-        
-        @Override
-        protected void onDestroy() {
-            super.onDestroy();
-            if (tts != null) {
-                tts.stop();
-                tts.shutdown();
-            }
-            if (thread1 != null && thread1.isAlive()) {
-                thread1.interrupt();
-            }
-        }
 
         article = findViewById(R.id.WebView);
         article.loadUrl(uri);
@@ -121,9 +121,14 @@ public class Article_Display extends AppCompatActivity {
                 final int[] selectedIndex = {-1};
                 Playlist[] playlistArray = playlists.toArray(new Playlist[0]);
 
+                CharSequence[] playlistNames = new CharSequence[playlistArray.length];
+                for (int i = 0; i < playlistArray.length; i++) {
+                    playlistNames[i] = playlistArray[i].name;
+                }
+
                 new AlertDialog.Builder(view.getContext())
                         .setTitle("Save to Playlist")
-                        .setSingleChoiceItems(playlistArray, -1, (dialog, which) -> {
+                        .setSingleChoiceItems(playlistNames, -1, (dialog, which) -> {
                             selectedIndex[0] = which;
                         })
                         .setPositiveButton("Save", (dialog, which) -> {
@@ -134,19 +139,19 @@ public class Article_Display extends AppCompatActivity {
                             //Lets user change name of article entered into playlist
                             EditText input = new EditText(view.getContext());
                             input.setHint("Change Article Name");
-                            String playlistName = playlistArray[selectedIndex[0]].getName();
+                            String playlistName = playlistArray[selectedIndex[0]].name;
 
                             new AlertDialog.Builder(view.getContext())
                                 .setTitle("Change Article Name?").setView(input)
-                                .setPositiveButton("Yes", (dialog, selectOpt) -> {
+                                .setPositiveButton("Yes", (dialog2, selectOpt) -> {
                                     String name = input.getText().toString();
-                                    playlistArray[selectedIndex[0]].add(new Article(name, uri));
+                                    playlistArray[selectedIndex[0]].addArticle(new Article(name, uri));
                                     prefs.edit().putString("Playlists", gson.toJson(playlists)).apply();
                                 })
-                                .setNegativeButton("No", (dialog, selectOpt) -> {
-                                    dialog.dismiss();
+                                .setNegativeButton("No", (dialog2, selectOpt) -> {
+                                    dialog2.dismiss();
                                     String name = uri;
-                                    playlistArray[selectedIndex[0]].add(new Article(name, uri));
+                                    playlistArray[selectedIndex[0]].addArticle(new Article(name, uri));
                                     prefs.edit().putString("Playlists", gson.toJson(playlists)).apply();
                                 })
                                 .show();
