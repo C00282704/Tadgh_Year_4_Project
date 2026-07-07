@@ -17,6 +17,8 @@ import android.webkit.WebViewClient;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.EditText;
+import android.widget.Button;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -33,14 +35,25 @@ import java.util.List;
 public class Article_Display extends AppCompatActivity {
 
     TextToSpeech tts;
-    Boolean ttsPressed = false;
+    boolean ttsPressed = false;
     ImageButton ttsButton;
     ImageButton favorited;
     TextView contentView;
     WebView article;
-    boolean ttsDone;
 
     Thread thread1;
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (tts != null) {
+            tts.stop();
+            tts.shutdown();
+        }
+        if (thread1 != null && thread1.isAlive()) {
+            thread1.interrupt();
+        }
+    }
 
 
     @Override
@@ -68,7 +81,7 @@ public class Article_Display extends AppCompatActivity {
         tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
             @Override
             public void onDone(String s) {
-                ttsDone = true;
+                
             }
 
             @Override
@@ -78,7 +91,7 @@ public class Article_Display extends AppCompatActivity {
 
             @Override
             public void onStart(String s) {
-                ttsDone = false;
+                
             }
         });
 
@@ -90,11 +103,11 @@ public class Article_Display extends AppCompatActivity {
         Gson gson = new Gson();
 
         String jsonString = prefs.getString("Playlists", null);
-        List<String> playlists;
+        List<Playlist> playlists;
         if (jsonString != null) {
-            playlists = gson.fromJson(jsonString, new TypeToken<List<String>>() {}.getType());
+            playlists = gson.fromJson(jsonString, new TypeToken<List<Playlist>>() {}.getType());
         } else {
-            playlists = new ArrayList<>();
+            playlists = new ArrayList<Playlist>();
         }
 
         favorited.setOnClickListener(new View.OnClickListener() {
@@ -106,11 +119,16 @@ public class Article_Display extends AppCompatActivity {
                 }
 
                 final int[] selectedIndex = {-1};
-                String[] playlistArray = playlists.toArray(new String[0]);
+                Playlist[] playlistArray = playlists.toArray(new Playlist[0]);
+
+                CharSequence[] playlistNames = new CharSequence[playlistArray.length];
+                for (int i = 0; i < playlistArray.length; i++) {
+                    playlistNames[i] = playlistArray[i].name;
+                }
 
                 new AlertDialog.Builder(view.getContext())
                         .setTitle("Save to Playlist")
-                        .setSingleChoiceItems(playlistArray, -1, (dialog, which) -> {
+                        .setSingleChoiceItems(playlistNames, -1, (dialog, which) -> {
                             selectedIndex[0] = which;
                         })
                         .setPositiveButton("Save", (dialog, which) -> {
@@ -118,18 +136,25 @@ public class Article_Display extends AppCompatActivity {
                                 Toast.makeText(view.getContext(), "Please select a Playlist", Toast.LENGTH_SHORT).show();
                                 return;
                             }
-                            String selectedPlaylist = playlistArray[selectedIndex[0]];
-                            Log.i("SELPLAYLIST", selectedPlaylist);
-                            String newJSON = prefs.getString(selectedPlaylist, null);
-                            List<String> pl;
-                            if(newJSON != null){
-                                pl = gson.fromJson(newJSON, new TypeToken<List<String>>() {}.getType());
-                            }else{
-                                pl = new ArrayList<>();
-                            }
+                            //Lets user change name of article entered into playlist
+                            EditText input = new EditText(view.getContext());
+                            input.setHint("Change Article Name");
+                            String playlistName = playlistArray[selectedIndex[0]].name;
 
-                            pl.add(uri);
-                            prefs.edit().putString(selectedPlaylist, gson.toJson(pl)).apply();
+                            new AlertDialog.Builder(view.getContext())
+                                .setTitle("Change Article Name?").setView(input)
+                                .setPositiveButton("Yes", (dialog2, selectOpt) -> {
+                                    String name = input.getText().toString();
+                                    playlistArray[selectedIndex[0]].addArticle(new Article(name, uri));
+                                    prefs.edit().putString("Playlists", gson.toJson(playlists)).apply();
+                                })
+                                .setNegativeButton("No", (dialog2, selectOpt) -> {
+                                    dialog2.dismiss();
+                                    String name = uri;
+                                    playlistArray[selectedIndex[0]].addArticle(new Article(name, uri));
+                                    prefs.edit().putString("Playlists", gson.toJson(playlists)).apply();
+                                })
+                                .show();
                         })
                         .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
                         .show();
@@ -147,6 +172,26 @@ public class Article_Display extends AppCompatActivity {
                 contentView.post(new Runnable() {
                     public void run() {
                         contentView.setText(content);
+                            ttsButton = findViewById(textToSpeechButton);
+                            ttsButton.setOnClickListener(new View.OnClickListener(){
+                                @Override
+                                public void onClick(View view) {
+                                    if (ttsPressed == false) {
+                                        ttsButton.setImageResource(android.R.drawable.ic_lock_silent_mode_off);
+                                        ttsPressed = true;
+                                        String text = contentView.getText().toString();
+                                        thread1 = new Thread(new runTTS(text, tts));
+                                        thread1.start();
+
+                                    }
+                                    else {
+                                        ttsButton.setImageResource(android.R.drawable.ic_lock_silent_mode);
+                                        ttsPressed = false;
+                                        thread1.interrupt();
+                                        tts.stop();
+                                    }
+                                }
+                            });
                     }
                 });
             }
@@ -159,26 +204,6 @@ public class Article_Display extends AppCompatActivity {
             public void onPageFinished(WebView view, String url)
             {
                 view.loadUrl("javascript:window.INTERFACE.processContent(document.getElementsByTagName('body')[0].innerText);");
-            }
-        });
-        ttsButton = findViewById(textToSpeechButton);
-        ttsButton.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view) {
-                if (ttsPressed == false) {
-                    ttsButton.setImageResource(android.R.drawable.ic_lock_silent_mode_off);
-                    ttsPressed = true;
-                    String text = contentView.getText().toString();
-                    thread1 = new Thread(new runTTS(text, tts));
-                    thread1.start();
-
-                }
-                else {
-                    ttsButton.setImageResource(android.R.drawable.ic_lock_silent_mode);
-                    ttsPressed = false;
-                    thread1.interrupt();
-                    tts.stop();
-                }
             }
         });
     }

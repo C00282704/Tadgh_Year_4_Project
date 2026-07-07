@@ -26,6 +26,9 @@
             android:name=".MainPlaylists"
             android:exported="false" />
         <activity
+            android:name=".PlaylistDisplay"
+            android:exported="false" />
+        <activity
             android:name=".Article_Display"
             android:exported="false" />
         <activity

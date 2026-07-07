@@ -62,22 +62,25 @@ public class MainPlaylists extends AppCompatActivity {
             public void onClick(View v) {
                 EditText input = new EditText(v.getContext());
                 input.setHint("Enter NEW playlist name");
-                new AlertDialog.Builder(v.getContext()).setTitle("New Playlist").setView(input).setPositiveButton("Create", (dialog, which) -> {
+                new AlertDialog.Builder(v.getContext())
+                    .setTitle("New Playlist").setView(input)
+                    .setPositiveButton("Create", (dialog, which) -> {
                             String userText = input.getText().toString();
                             if (!userText.isEmpty()) {
                                 SharedPreferences prefs = getSharedPreferences("Prefs", Context.MODE_PRIVATE);
                                 Gson gson = new Gson();
 
-                                prefs.edit().putString(userText, gson.toJson(new ArrayList<>())).apply();
+                                //prefs.edit().putString(userText, gson.toJson(new ArrayList<>())).apply();
 
                                 String jsonString = prefs.getString("Playlists", null);
-                                List<String> playlists;
+                                List<Playlist> playlists;
                                 if (jsonString != null) {
-                                    playlists = gson.fromJson(jsonString, new TypeToken<List<String>>() {}.getType());
+                                    playlists = gson.fromJson(jsonString, new TypeToken<List<Playlist>>() {}.getType());
                                 } else {
-                                    playlists = new ArrayList<>();
+                                    playlists = new ArrayList<Playlist>();
                                 }
-                                playlists.add(userText);
+                                
+                                playlists.add(new Playlist(userText));
                                 prefs.edit().putString("Playlists", gson.toJson(playlists)).apply();
                             }
                             finish();
@@ -94,7 +97,7 @@ public class MainPlaylists extends AppCompatActivity {
             Log.i("PREFERENCES", prefs.toString());
             Gson gson = new Gson();
             String jsonString = prefs.getString("Playlists", null);
-            List<String> playlists = gson.fromJson(jsonString, new TypeToken<List<String>>() {}.getType());
+            List<Playlist> playlists = gson.fromJson(jsonString, new TypeToken<List<Playlist>>() {}.getType());
             if(playlists != null){
                 runOnUiThread(() -> {
                     LinearLayout scrollList = findViewById(R.id.LL1);
@@ -103,8 +106,8 @@ public class MainPlaylists extends AppCompatActivity {
 
                         LinearLayout newLayout = new LinearLayout(MainPlaylists.this);
                         TextView title = new TextView(MainPlaylists.this);
-                        title.setText(playlists.get(i));//Playlist name
-                        Log.i("Playlist Name:", playlists.get(i));
+                        title.setText(playlists.get(i).name);//Playlist name
+                        Log.i("Playlist Name:", playlists.get(i).name);
 
                         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(205,350);
                         title.setLayoutParams(lp);
@@ -115,10 +118,10 @@ public class MainPlaylists extends AppCompatActivity {
                         folder.setImageDrawable(getDrawable(R.drawable.file));
                         newLayout.addView(folder);
                         newLayout.addView(title);
-                        String pl = prefs.getString(playlists.get(i), null);
+                        String pl = prefs.getString(playlists.get(i).name, null);
                         newLayout.setOnClickListener(new View.OnClickListener() {
                             public void onClick(View v) {
-                                Intent intent = new Intent(MainPlaylists.this, Playlist.class);
+                                Intent intent = new Intent(MainPlaylists.this, PlaylistDisplay.class);
                                 intent.putExtra("playlist", pl);
                                 startActivity(intent);
                             }
