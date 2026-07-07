@@ -56,36 +56,105 @@ public class PlaylistDisplay extends AppCompatActivity {
             }
         });
 
+        SharedPreferences prefs = getSharedPreferences("Prefs", Context.MODE_PRIVATE);
+        Gson gson = new Gson();
+        String jsonString = prefs.getString("Playlists", null);
+        List<Playlist> playlists = gson.fromJson(jsonString, new TypeToken<List<Playlist>>() {}.getType());
         Intent receiverIntent = getIntent();
-        String name = receiverIntent.getStringExtra("uri");
-        if(Objects.equals(name, "")){
-            new AlertDialog.Builder(PlaylistDisplay.this)
-                    .setTitle("Playlist Empty")
-                    .setPositiveButton("Return", (dialog, which) -> {
-                        finish();
-                        Intent intent = new Intent(PlaylistDisplay.this, MainPlaylists.class);
-                        startActivity(intent);
-                    })
-                    .show();
-        }else{
-            SharedPreferences prefs = getSharedPreferences("Prefs", Context.MODE_PRIVATE);
-            Gson gson = new Gson();
-            String jsonString = prefs.getString(name, null);
+        String playlistName = receiverIntent.getStringExtra("playlist");
+        Playlist playlist = null;
 
-            List<String> finalUrls = gson.fromJson(jsonString, new TypeToken<List<String>>() {}.getType());
+        for(int i = 0; i<playlists.size(); i++){
+            if(Objects.equals(playlists.get(i).name, playlistName)){
+                playlist = playlists.get(i);
+            }
+        }
+        if(playlist == null){
+            //Display error message, return to MainPlaylists
+        }else{
+            List<String> finalUrls = new ArrayList<>();
+            for(int i = 0; i < playlist.article.size(); i++){
+                finalUrls.add(playlist.article.get(i).link);
+            }
+        
+
+        
+
+        // Intent receiverIntent = getIntent();
+        // String name = receiverIntent.getStringExtra("uri");
+        // if(Objects.equals(name, "")){
+        //     new AlertDialog.Builder(PlaylistDisplay.this)
+        //             .setTitle("Playlist Empty")
+        //             .setPositiveButton("Return", (dialog, which) -> {
+        //                 finish();
+        //                 Intent intent = new Intent(PlaylistDisplay.this, MainPlaylists.class);
+        //                 startActivity(intent);
+        //             })
+        //             .show();
+        // }else{
+        //     SharedPreferences prefs = getSharedPreferences("Prefs", Context.MODE_PRIVATE);
+        //     Gson gson = new Gson();
+        //     String jsonString = prefs.getString(name, null);
+
+        //     List<String> finalUrls = gson.fromJson(jsonString, new TypeToken<List<String>>() {}.getType());
+        // }
+
+        new Thread(() -> {
+            try {
+                for (int i = 0; i < finalUrls.size(); i++) {
+                    //These pull all of the Links, titles and thumbnails in the given RSS Feed.
+                    String url = finalUrls.get(i);
+                    Log.i("URLOG", finalUrls.get(i));
+
+                    List<RssArticle> articles = getFeedDetails(url);
+                    if (articles == null || articles.isEmpty()){
+                        continue;
+                    }
+
+                    runOnUiThread(() -> {
+                        LinearLayout mainContainer = findViewById(R.id.LL1);
+                        for (int i2 = 0; i2 < articles.size(); i2++) {
+                            RssArticle article = articles.get(i2);
+                            LinearLayout listMain = new LinearLayout(PlaylistDisplay.this);
+                            listMain.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+
+                            LinearLayout.LayoutParams titleLp = new LinearLayout.LayoutParams(205,350);
+                            TextView tv1 = new TextView(PlaylistDisplay.this);
+                            tv1.setText(article.title);
+                            tv1.setLayoutParams(titleLp);
+
+                            LinearLayout.LayoutParams imageLp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,350);
+                            ImageView iv1 = new ImageView(PlaylistDisplay.this);
+                            iv1.setImageBitmap(article.image);
+                            iv1.setLayoutParams(imageLp);
+
+                            String link = article.link;
+                            Log.i("LINKS", link);
+                            listMain.setOnClickListener(v -> {
+                                Intent intent = new Intent(PlaylistDisplay.this, Article_Display.class);
+                                intent.putExtra("uri", link);
+                                startActivity(intent);
+                            });
+
+                            listMain.addView(tv1);
+                            listMain.addView(iv1);
+                            mainContainer.addView(listMain);
+                        }
+                    });
+
+                }
+            } catch (IOException e) {
+                Log.e("IOException:", Objects.requireNonNull(e.getMessage()));
+            }
+        }).start();
         }
     }
 
-    public static List<MainActivity.RssArticle> getFeedDetails(String feedUrl) throws IOException {
+    public static List<RssArticle> getFeedDetails(String feedUrl) throws IOException {
         try {
-            OkHttpClient client = new OkHttpClient.Builder()
-                    .followRedirects(true)
-                    .build();
+            OkHttpClient client = new OkHttpClient.Builder().followRedirects(true).build();
 
-            Request request = new Request.Builder()
-                    .url(feedUrl)
-                    .header("User-Agent", "RssFeedParser2/1.0")
-                    .build();
+            Request request = new Request.Builder().url(feedUrl).header("User-Agent", "RssFeedParser2/1.0").build();
             String valResponse;
             try (Response response = client.newCall(request).execute()) {
                 if (!response.isSuccessful()) {
@@ -104,17 +173,21 @@ public class PlaylistDisplay extends AppCompatActivity {
 
             Matcher articleMatcher = ITEM_PATTERN.matcher(valResponse);
 
-            List<MainActivity.RssArticle> articles = new ArrayList<>();
+            List<RssArticle> articles = new ArrayList<>();
 
             while (articleMatcher.find()) {
                 String block = articleMatcher.group(1);
-                MainActivity.RssArticle article = new MainActivity.RssArticle();
+                RssArticle article = new RssArticle();
 
                 article.title = findString(TITLE_PATTERN, block);
                 article.link = findString(LINK_PATTERN, block);
-                article.image = findImage(block);
+                try{
+                    article.image = findImage(block);
+                }catch(IOException e){
+                    Log.e("ERROR", "IOEXCEPTION")
+                }
+                
 
-                // Clean up any stray whitespace / newlines
                 if (article.title != null){
                     article.title = article.title.strip();
                 }
@@ -127,9 +200,9 @@ public class PlaylistDisplay extends AppCompatActivity {
             }
             return articles;
         }catch (MalformedURLException mue) {
-            System.out.println("Malformed URL");
+            Log.i("Error", mue.toString());
         } catch (IOException ioe) {
-            System.out.println("Something went wrong reading the contents");
+            Log.i("Error", ioe.toString());
         }
         return null;
     }
