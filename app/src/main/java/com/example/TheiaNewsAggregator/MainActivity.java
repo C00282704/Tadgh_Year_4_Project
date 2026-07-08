@@ -71,8 +71,7 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("Prefs", Context.MODE_PRIVATE);
         Gson gson = new Gson();
         String jsonString = prefs.getString("feedUrls", null);
-        List<String> urls = gson.fromJson(jsonString, new TypeToken<List<String>>() {
-        }.getType());
+        List<String> urls = gson.fromJson(jsonString, new TypeToken<List<String>>() {}.getType());
 
         if (urls == null || urls.isEmpty()) {
             List<String> list = new ArrayList<>();
