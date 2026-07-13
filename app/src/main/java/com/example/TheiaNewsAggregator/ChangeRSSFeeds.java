@@ -34,6 +34,10 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+import android.webkit.URLUtil;
+import java.net.MalformedURLException;
+import java.net.URL;
+
 public class ChangeRSSFeeds extends AppCompatActivity {
 
     List<String> names = new ArrayList<>();
@@ -78,21 +82,90 @@ public class ChangeRSSFeeds extends AppCompatActivity {
 
             if(urls.isEmpty){
                 //make RTE
+                List<String> list = new ArrayList<>();
+                list.add("https://www.rte.ie/feeds/rss/?index=/news/");
+                String json = gson.toJson(list);
+                prefs.edit().putString("feedUrls", json).apply();
+                urls = new ArrayList<>();
+                urls.add("https://www.rte.ie/feeds/rss/?index=/news/");
             }
             /////////////////////////////////////////////////////
             //Create check boxes from below using urls
             /////////////////////////////////////////////////////
 
+            ImageButton addButton = findViewById(R.id.addFeedButton);
+            addButton.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    EditText input = new EditText(v.getContext());
+                    input.setHint("Enter NEW Feed");
+                    new AlertDialog.Builder(v.getContext())
+                        .setTitle("New Feed").setView(input)
+                        .setPositiveButton("Add", (dialog, which) -> {
+                                String userText = input.getText().toString();
+                                if (!userText.isEmpty() && isValidUrlSyntax(userText)) {
+                                    SharedPreferences prefs = getSharedPreferences("Prefs", Context.MODE_PRIVATE);
+                                    Gson gson = new Gson();
 
+                                    String jsonString = prefs.getString("RSSFeeds", null);
+                                    List<String> feeds;
+                                    if (jsonString != null) {
+                                        feeds = gson.fromJson(jsonString, new TypeToken<List<String>>() {}.getType());
+                                    } else {
+                                        feeds = new ArrayList<String>();
+                                    }
+                                    feeds.add(new Playlist(userText));
+                                    prefs.edit().putString("Playlists", gson.toJson(feeds)).apply();
+                                    finish();
+                                    Intent intent = new Intent(ChangeRSSFeeds.this, ChangeRSSFeeds.class);
+                                    startActivity(intent);
+                                }else{
+                                    new AlertDialog.Builder(this)
+                                    .setTitle("Invalid RSS Feed URL")
+                                    .setMessage("The URL you entered isn't a valid web address.")
+                                    .setPositiveButton("OK", null)
+                                    .show();
+                                }
+                            })
+                        .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                        .show();
+                }
+            });
 
+            if (names != null) {
+            runOnUiThread(() -> {
+                LinearLayout mainContainer = findViewById(R.id.LLMain);
+                for (int i = 0; i < names.size(); i++) {
+                    Log.i("LOG", "2-Printing");
+                    //Create button
+                    LinearLayout newLayout = new LinearLayout(ChangeRSSFeeds.this);
+                    CheckBox newCB = new CheckBox(ChangeRSSFeeds.this);
+                    newCB.setText(urls.get(i));
+                    String link = links.get(i);
+                    int index = i;
+                    newCB.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                        @Override
+                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                            if (isChecked) {
+                                prefLinks.add(links.get(index));
+                            } else {
+                                prefLinks.remove(links.get(index));
+                            }
+                        }
+                    });
 
-            // String url = "https://zganowuduwhsgxdhlxcl.supabase.co/rest/v1/RSSFeeds";
-            // String key = "sb_publishable_vSfZh1SKFxeBtuTdmErOSQ_hI7Ml1rU";
-            // OkHttpClient client = new OkHttpClient();
+                    // ImageView newLogo = new ImageView(ChangeRSSFeeds.this);
+                    // newLogo.setImageBitmap(images.get(i));
 
-            // Request request = new Request.Builder().url(url).addHeader("apikey", key).addHeader("Authorization", "Bearer " + key).build();
+                    LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(205,350);
+                    newCB.setLayoutParams(lp);
+                    newLogo.setLayoutParams(lp);
 
-            // try (Response response = client.newCall(request).execute()) {
+                    newLayout.addView(newCB);
+                    // newLayout.addView(newLogo);
+                    mainContainer.addView(newLayout);
+                }
+            });
+
             //     String responseString = "";
             //     if (response.body() != null) {
             //         responseString = response.body().string();
@@ -168,7 +241,22 @@ public class ChangeRSSFeeds extends AppCompatActivity {
             //             mainContainer.addView(newLayout);
             //         }
             //     });
-            }}).start();
+            //}}).start();
+    }
+
+    public boolean isValidUrlSyntax(String urlString) {
+        if (urlString == null || urlString.trim().isEmpty()) {
+            return false;
+        }
+        if (!URLUtil.isValidUrl(urlString)) {
+            return false;
+        }
+        try {
+            new URL(urlString); // throws if truly malformed
+            return urlString.startsWith("http://") || urlString.startsWith("https://");
+        } catch (MalformedURLException e) {
+            return false;
+        }
     }
 
 }
