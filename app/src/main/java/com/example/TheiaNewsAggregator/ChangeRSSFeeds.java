@@ -13,6 +13,9 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ImageButton;
+import android.widget.EditText;
+import android.widget.AlertDialog;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,6 +24,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -40,9 +44,9 @@ import java.net.URL;
 
 public class ChangeRSSFeeds extends AppCompatActivity {
 
-    List<String> names = new ArrayList<>();
-    List<Bitmap> images = new ArrayList<>();
-    List<String> links = new ArrayList<>();
+   List<String> names = new ArrayList<>();
+    // List<Bitmap> images = new ArrayList<>();
+    // List<String> links = new ArrayList<>();
     List<String> prefLinks = new ArrayList<>();
 
     @Override
@@ -66,7 +70,7 @@ public class ChangeRSSFeeds extends AppCompatActivity {
                 SharedPreferences prefs = getSharedPreferences("Prefs", Context.MODE_PRIVATE);
                 Gson gson = new Gson();
                 String json = gson.toJson(prefLinks);
-                prefs.edit().putString("feedUrls", json).commit();
+                prefs.edit().putString("feedUrls", json).apply();
 
 
                 Intent senderIntent = new Intent(ChangeRSSFeeds.this, Settings.class);
@@ -80,7 +84,7 @@ public class ChangeRSSFeeds extends AppCompatActivity {
             String jsonString = prefs.getString("RSSFeeds", null);
             List<String> urls = gson.fromJson(jsonString, new TypeToken<List<String>>() {}.getType());
 
-            if(urls.isEmpty){
+            if(urls.isEmpty() || urls == null){
                 //make RTE
                 List<String> list = new ArrayList<>();
                 list.add("https://www.rte.ie/feeds/rss/?index=/news/");
@@ -113,13 +117,13 @@ public class ChangeRSSFeeds extends AppCompatActivity {
                                     } else {
                                         feeds = new ArrayList<String>();
                                     }
-                                    feeds.add(new Playlist(userText));
-                                    prefs.edit().putString("Playlists", gson.toJson(feeds)).apply();
+                                    feeds.add(new String(userText));
+                                    prefs.edit().putString("RSSFeeds", gson.toJson(feeds)).apply();
                                     finish();
                                     Intent intent = new Intent(ChangeRSSFeeds.this, ChangeRSSFeeds.class);
                                     startActivity(intent);
                                 }else{
-                                    new AlertDialog.Builder(this)
+                                    new AlertDialog.Builder(v.getContext())
                                     .setTitle("Invalid RSS Feed URL")
                                     .setMessage("The URL you entered isn't a valid web address.")
                                     .setPositiveButton("OK", null)
@@ -131,117 +135,36 @@ public class ChangeRSSFeeds extends AppCompatActivity {
                 }
             });
 
-            if (names != null) {
-            runOnUiThread(() -> {
-                LinearLayout mainContainer = findViewById(R.id.LLMain);
-                for (int i = 0; i < names.size(); i++) {
-                    Log.i("LOG", "2-Printing");
-                    //Create button
-                    LinearLayout newLayout = new LinearLayout(ChangeRSSFeeds.this);
-                    CheckBox newCB = new CheckBox(ChangeRSSFeeds.this);
-                    newCB.setText(urls.get(i));
-                    String link = links.get(i);
-                    int index = i;
-                    newCB.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                            if (isChecked) {
-                                prefLinks.add(links.get(index));
-                            } else {
-                                prefLinks.remove(links.get(index));
+            if (urls != null) {
+                runOnUiThread(() -> {
+                    LinearLayout mainContainer = findViewById(R.id.LLMain);
+                    for (int i = 0; i < urls.size(); i++) {
+                        Log.i("LOG", "2-Printing");
+                        //Create button
+                        LinearLayout newLayout = new LinearLayout(ChangeRSSFeeds.this);
+                        CheckBox newCB = new CheckBox(ChangeRSSFeeds.this);
+                        newCB.setText(urls.get(i));
+                        int index = i;
+                        newCB.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                            @Override
+                            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                                if (isChecked) {
+                                    prefLinks.add(urls.get(index));
+                                } else {
+                                    prefLinks.remove(urls.get(index));
+                                }
                             }
-                        }
-                    });
+                        });
 
-                    // ImageView newLogo = new ImageView(ChangeRSSFeeds.this);
-                    // newLogo.setImageBitmap(images.get(i));
 
-                    LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(205,350);
-                    newCB.setLayoutParams(lp);
-                    newLogo.setLayoutParams(lp);
+                        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(205,350);
+                        newCB.setLayoutParams(lp);
 
-                    newLayout.addView(newCB);
-                    // newLayout.addView(newLogo);
-                    mainContainer.addView(newLayout);
-                }
-            });
-
-            //     String responseString = "";
-            //     if (response.body() != null) {
-            //         responseString = response.body().string();
-            //     }
-
-            //     JSONArray jsonArray = new JSONArray(responseString);
-
-            //     // Loop through each row
-            //     for (int i = 0; i < jsonArray.length(); i++) {//Get the name for each Site for the CheckBox Names
-            //         JSONObject row = jsonArray.getJSONObject(i);
-            //         if (!row.getString("name").isEmpty()) {
-            //             String feedName = row.getString("name");
-            //             names.add(feedName);
-            //             String link = row.getString("link");
-            //             links.add(link);
-            //         }
-            //     }
-
-            //     for (int i = 0; i < jsonArray.length(); i++) {//Get the logo for each Site for the CheckBox Names
-            //         JSONObject row = jsonArray.getJSONObject(i);
-            //         if (!row.getString("logoName").isEmpty()) {
-            //             String logoName = row.getString("logoName");
-            //             String imageUrl = "https://zganowuduwhsgxdhlxcl.supabase.co/storage/v1/object/public/FeedImages/" + logoName;
-            //             Request imageNameRequest = new Request.Builder().url(imageUrl).addHeader("apikey", key).addHeader("Authorization", "Bearer " + key).build();
-
-            //             try (Response imageResponse = client.newCall(imageNameRequest).execute()) {
-            //                 if (imageResponse.body() != null) {
-            //                     byte[] imageBytes = imageResponse.body().bytes();
-            //                     Bitmap bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
-            //                     images.add(bitmap);
-            //                 }
-            //             } catch (Exception e) {
-            //                 e.printStackTrace();
-            //             }
-            //         }
-            //     }
-            // } catch (IOException e) {
-            //     throw new RuntimeException(e);
-            // } catch (JSONException e) {
-            //     throw new RuntimeException(e);
-            // }
-            // if (names != null) {
-            //     runOnUiThread(() -> {
-            //         LinearLayout mainContainer = findViewById(R.id.LLMain);
-            //         for (int i = 0; i < names.size(); i++) {
-            //             Log.i("LOG", "2-Printing");
-            //             //Create button
-            //             LinearLayout newLayout = new LinearLayout(ChangeRSSFeeds.this);
-            //             CheckBox newCB = new CheckBox(ChangeRSSFeeds.this);
-            //             newCB.setText(names.get(i));//RSS Feed Name
-            //             String link = links.get(i);
-            //             int index = i;
-            //             newCB.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            //                 @Override
-            //                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            //                     if (isChecked) {
-            //                         prefLinks.add(links.get(index));
-            //                     } else {
-            //                         prefLinks.remove(links.get(index));
-            //                     }
-            //                 }
-            //             });
-
-            //             ImageView newLogo = new ImageView(ChangeRSSFeeds.this);
-            //             newLogo.setImageBitmap(images.get(i));
-
-            //             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(205,350);
-            //             newCB.setLayoutParams(lp);
-            //             newLogo.setLayoutParams(lp);
-
-            //             newLayout.addView(newCB);
-            //             newLayout.addView(newLogo);
-            //             mainContainer.addView(newLayout);
-            //         }
-            //     });
-            //}}).start();
+                        newLayout.addView(newCB);
+                        mainContainer.addView(newLayout);
+                    }
+                });
+            }}).start();
     }
 
     public boolean isValidUrlSyntax(String urlString) {
