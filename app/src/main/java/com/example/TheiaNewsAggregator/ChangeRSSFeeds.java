@@ -3,8 +3,6 @@ package com.example.TheiaNewsAggregator;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -25,18 +23,20 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import org.json.gson.JsonSyntaxException;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+// import org.json.JSONArray;
+// import org.json.JSONException;
+// import org.json.JSONObject;
+// import android.graphics.Bitmap;
+// import android.graphics.BitmapFactory;
+// import java.io.IOException;
+// import okhttp3.OkHttpClient;
+// import okhttp3.Request;
+// import okhttp3.Response;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 
 import android.webkit.URLUtil;
 import java.net.MalformedURLException;
@@ -65,6 +65,7 @@ public class ChangeRSSFeeds extends AppCompatActivity {
         //Add Button apply, that saves chosen rss feed links to preferences for Main to pull
 
         Button applyButton = findViewById(R.id.applyButton);
+        applyButton.setEnabled(false);
         applyButton.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
                 SharedPreferences prefs = getSharedPreferences("Prefs", Context.MODE_PRIVATE);
@@ -82,14 +83,19 @@ public class ChangeRSSFeeds extends AppCompatActivity {
             SharedPreferences prefs = getSharedPreferences("Prefs", Context.MODE_PRIVATE);
             Gson gson = new Gson();
             String jsonString = prefs.getString("RSSFeeds", null);
-            List<String> urls = gson.fromJson(jsonString, new TypeToken<List<String>>() {}.getType());
+            try{
+                List<String> urls = gson.fromJson(jsonString, new TypeToken<List<String>>() {}.getType());
+            }catch(JsonSyntaxException j){
+                Log.e("JsonSyntaxException", j)
+                List<String> urls = new ArrayList<>()
+            }
 
-            if(urls.isEmpty() || urls == null){
+            if(urls == null || urls.isEmpty()){
                 //make RTE
                 List<String> list = new ArrayList<>();
                 list.add("https://www.rte.ie/feeds/rss/?index=/news/");
                 String json = gson.toJson(list);
-                prefs.edit().putString("feedUrls", json).apply();
+                prefs.edit().putString("RSSFeeds", json).apply();
                 urls = new ArrayList<>();
                 urls.add("https://www.rte.ie/feeds/rss/?index=/news/");
             }
@@ -97,65 +103,74 @@ public class ChangeRSSFeeds extends AppCompatActivity {
             //Create check boxes from below using urls
             /////////////////////////////////////////////////////
 
-            ImageButton addButton = findViewById(R.id.addFeedButton);
-            addButton.setOnClickListener(new View.OnClickListener() {
-                public void onClick(View v) {
-                    EditText input = new EditText(v.getContext());
-                    input.setHint("Enter NEW Feed");
-                    new AlertDialog.Builder(v.getContext())
-                        .setTitle("New Feed").setView(input)
-                        .setPositiveButton("Add", (dialog, which) -> {
-                                String userText = input.getText().toString();
-                                if (!userText.isEmpty() && isValidUrlSyntax(userText)) {
-                                    SharedPreferences prefs = getSharedPreferences("Prefs", Context.MODE_PRIVATE);
-                                    Gson gson = new Gson();
-
-                                    String jsonString = prefs.getString("RSSFeeds", null);
-                                    List<String> feeds;
-                                    if (jsonString != null) {
-                                        feeds = gson.fromJson(jsonString, new TypeToken<List<String>>() {}.getType());
-                                    } else {
-                                        feeds = new ArrayList<String>();
-                                    }
-                                    feeds.add(new String(userText));
-                                    prefs.edit().putString("RSSFeeds", gson.toJson(feeds)).apply();
-                                    finish();
-                                    Intent intent = new Intent(ChangeRSSFeeds.this, ChangeRSSFeeds.class);
-                                    startActivity(intent);
-                                }else{
-                                    new AlertDialog.Builder(v.getContext())
-                                    .setTitle("Invalid RSS Feed URL")
-                                    .setMessage("The URL you entered isn't a valid web address.")
-                                    .setPositiveButton("OK", null)
-                                    .show();
-                                }
-                            })
-                        .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
-                        .show();
-                }
-            });
-
             if (urls != null) {
+                final List<String> finalUrls = urls;
+                String newJString = prefs.getString("feedUrls", null);
+                List<String> selectedUrls = (newJString != null)
+                ? gson.fromJson(newJString, new TypeToken<List<String>>(){}.getType())
+                : new ArrayList<>();
                 runOnUiThread(() -> {
+                    ImageButton addButton = findViewById(R.id.addFeedButton);
+                    addButton.setOnClickListener(new View.OnClickListener() {
+                        public void onClick(View v) {
+                            EditText input = new EditText(v.getContext());
+                            input.setHint("Enter NEW Feed");
+                            new AlertDialog.Builder(v.getContext())
+                                .setTitle("New Feed").setView(input)
+                                .setPositiveButton("Add", (dialog, which) -> {
+                                        String userText = input.getText().toString();
+                                        if (!userText.isEmpty() && isValidUrlSyntax(userText)) {
+                                            SharedPreferences prefs = getSharedPreferences("Prefs", Context.MODE_PRIVATE);
+                                            Gson gson = new Gson();
+
+                                            String jsonString = prefs.getString("RSSFeeds", null);
+                                            List<String> feeds;
+                                            if (jsonString != null) {
+                                                feeds = gson.fromJson(jsonString, new TypeToken<List<String>>() {}.getType());
+                                            } else {
+                                                feeds = new ArrayList<String>();
+                                            }
+                                            feeds.add(userText);
+                                            prefs.edit().putString("RSSFeeds", gson.toJson(feeds)).apply();
+                                            finish();
+                                            Intent intent = new Intent(ChangeRSSFeeds.this, ChangeRSSFeeds.class);
+                                            startActivity(intent);
+                                        }else{
+                                            new AlertDialog.Builder(v.getContext())
+                                            .setTitle("Invalid RSS Feed URL")
+                                            .setMessage("The URL you entered isn't a valid web address.")
+                                            .setPositiveButton("OK", null)
+                                            .show();
+                                        }
+                                    })
+                                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                                .show();
+                        }
+                    });
+
                     LinearLayout mainContainer = findViewById(R.id.LLMain);
-                    for (int i = 0; i < urls.size(); i++) {
+                    for (int i = 0; i < finalUrls.size(); i++) {
                         Log.i("LOG", "2-Printing");
                         //Create button
                         LinearLayout newLayout = new LinearLayout(ChangeRSSFeeds.this);
                         CheckBox newCB = new CheckBox(ChangeRSSFeeds.this);
-                        newCB.setText(urls.get(i));
+                        newCB.setText(finalUrls.get(i));
                         int index = i;
                         newCB.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                             @Override
                             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                                 if (isChecked) {
-                                    prefLinks.add(urls.get(index));
+                                    prefLinks.add(finalUrls.get(index));
                                 } else {
-                                    prefLinks.remove(urls.get(index));
+                                    prefLinks.remove(finalUrls.get(index));
                                 }
                             }
                         });
-
+                        for(int i2 = 0; i2 < selectedUrls.size(); i2++){
+                            if(selectedUrls.get(i2).equals(finalUrls.get(i))){
+                                newCB.setChecked(true);
+                            }
+                        }
 
                         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(205,350);
                         newCB.setLayoutParams(lp);
@@ -163,6 +178,7 @@ public class ChangeRSSFeeds extends AppCompatActivity {
                         newLayout.addView(newCB);
                         mainContainer.addView(newLayout);
                     }
+                applyButton.setEnabled(true);
                 });
             }}).start();
     }
