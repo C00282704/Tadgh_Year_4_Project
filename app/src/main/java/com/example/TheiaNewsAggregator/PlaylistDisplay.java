@@ -73,8 +73,8 @@ public class PlaylistDisplay extends AppCompatActivity {
             //Display error message, return to MainPlaylists
         }else{
             List<String> finalUrls = new ArrayList<>();
-            for(int i = 0; i < playlist.article.size(); i++){
-                finalUrls.add(playlist.article.get(i).link);
+            for(int i = 0; i < playlist.list.size(); i++){
+                finalUrls.add(playlist.list.get(i).link);
             }
         
 
@@ -184,7 +184,7 @@ public class PlaylistDisplay extends AppCompatActivity {
                 try{
                     article.image = findImage(block);
                 }catch(IOException e){
-                    Log.e("ERROR", "IOEXCEPTION")
+                    Log.e("ERROR", "IOEXCEPTION");
                 }
                 
 

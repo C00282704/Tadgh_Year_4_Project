@@ -13,9 +13,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ImageButton;
 import android.widget.EditText;
-import android.widget.AlertDialog;
 
 import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -72,6 +72,7 @@ public class ChangeRSSFeeds extends AppCompatActivity {
                 Gson gson = new Gson();
                 String json = gson.toJson(prefLinks);
                 prefs.edit().putString("feedUrls", json).apply();
+                Log.i("FEEDS", json);
 
 
                 Intent senderIntent = new Intent(ChangeRSSFeeds.this, Settings.class);
@@ -106,20 +107,20 @@ public class ChangeRSSFeeds extends AppCompatActivity {
             if (urls != null) {
                 final List<String> finalUrls = urls;
                 String newJString = prefs.getString("feedUrls", null);
-                List<String> selectedUrls = (newJString != null)
+                List<String> selUrls = (newJString != null)
                 ? gson.fromJson(newJString, new TypeToken<List<String>>(){}.getType())
                 : new ArrayList<>();
 
                 if (newJString != null) {
                     try{
-                        selectedUrls = gson.fromJson(newJString, new TypeToken<List<String>>() {}.getType());
+                        selUrls = gson.fromJson(newJString, new TypeToken<List<String>>() {}.getType());
                     }catch(JsonSyntaxException j){
-                        selectedUrls = new ArrayList<>();
+                        selUrls = new ArrayList<>();
                     }
                 } else {
-                    selectedUrls = new ArrayList<String>();
+                    selUrls = new ArrayList<String>();
                 }
-
+                final List<String> selectedUrls = selUrls;
                 //supabaseFeeds();
 
                 runOnUiThread(() -> {
@@ -128,6 +129,7 @@ public class ChangeRSSFeeds extends AppCompatActivity {
                         public void onClick(View v) {
                             EditText input = new EditText(v.getContext());
                             input.setHint("Enter NEW Feed");
+                            Log.i("LOG", "BUTTON PRESSED");
                             new AlertDialog.Builder(v.getContext())
                                 .setTitle("New Feed").setView(input)
                                 .setPositiveButton("Add", (dialog, which) -> {
@@ -161,6 +163,7 @@ public class ChangeRSSFeeds extends AppCompatActivity {
                                 .show();
                         }
                     });
+
 
                     LinearLayout mainContainer = findViewById(R.id.LLMain);
                     for (int i = 0; i < finalUrls.size(); i++) {
