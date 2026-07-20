@@ -118,11 +118,10 @@ public class MainPlaylists extends AppCompatActivity {
                         folder.setImageDrawable(getDrawable(R.drawable.file));
                         newLayout.addView(folder);
                         newLayout.addView(title);
-                        String pl = prefs.getString(playlists.get(i).name, null);
                         newLayout.setOnClickListener(new View.OnClickListener() {
                             public void onClick(View v) {
                                 Intent intent = new Intent(MainPlaylists.this, PlaylistDisplay.class);
-                                intent.putExtra("playlist", pl);
+                                intent.putExtra("playlist", playlists.get(i).name);
                                 startActivity(intent);
                             }
                         });

@@ -149,7 +149,6 @@ public class Article_Display extends AppCompatActivity {
                                     prefs.edit().putString("Playlists", gson.toJson(playlistArray)).apply();
                                 })
                                 .setNegativeButton("No", (dialog2, selectOpt) -> {
-                                    dialog2.dismiss();
                                     String name = uri;
                                     playlistArray[selectedIndex[0]].addArticle(new Article(name, uri));
                                     prefs.edit().putString("Playlists", gson.toJson(playlistArray)).apply();

@@ -12,6 +12,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.EditText;
 
 import com.google.gson.Gson;
 
@@ -63,14 +64,31 @@ public class PlaylistDisplay extends AppCompatActivity {
         Intent receiverIntent = getIntent();
         String playlistName = receiverIntent.getStringExtra("playlist");
         Playlist playlist = null;
+        if(playlists == null){
+            Log.i("ERROR", "PLaylists is Null");
+            EditText input = new EditText(PlaylistDisplay.this);
+            new AlertDialog.Builder(PlaylistDisplay.this)
+                .setTitle("Playlist is Null").setView(input)
+                .setPositiveButton("Okay", (dialog, which) -> dialog.dismiss())
+                .show();
+            startActivity(new Intent(PlaylistDisplay.this, MainPlaylists.class));
+            finish(); return;
+        }
 
-        for(int i = 0; i<playlists.size(); i++){
+        for(int i = 0; i < playlists.size(); i++){
             if(Objects.equals(playlists.get(i).name, playlistName)){
                 playlist = playlists.get(i);
+                break;
             }
         }
         if(playlist == null){
-            //Display error message, return to MainPlaylists
+            Log.i("ERROR", "Playlist is Null");
+            EditText input = new EditText(PlaylistDisplay.this);
+            new AlertDialog.Builder(PlaylistDisplay.this)
+                .setTitle("Playlist is Null").setView(input)
+                .setPositiveButton("Okay", (dialog, which) -> dialog.dismiss())
+                .show();
+            startActivity(new Intent(PlaylistDisplay.this, MainPlaylists.class));
         }else{
             List<String> finalUrls = new ArrayList<>();
             for(int i = 0; i < playlist.list.size(); i++){
@@ -100,152 +118,31 @@ public class PlaylistDisplay extends AppCompatActivity {
         // }
 
         new Thread(() -> {
-            try {
-                for (int i = 0; i < finalUrls.size(); i++) {
-                    //These pull all of the Links, titles and thumbnails in the given RSS Feed.
-                    String url = finalUrls.get(i);
-                    Log.i("URLOG", finalUrls.get(i));
+            runOnUiThread(() -> {
+                LinearLayout mainContainer = findViewById(R.id.LL1);
+                for (int i2 = 0; i2 < playlist.list.size(); i2++) {
+                    Article article = playlist.list.get(i2);
 
-                    List<RssArticle> articles = getFeedDetails(url);
-                    if (articles == null || articles.isEmpty()){
-                        continue;
-                    }
+                    LinearLayout.LayoutParams titleLp = new LinearLayout.LayoutParams(205,350);
+                    TextView tv1 = new TextView(PlaylistDisplay.this);
+                    tv1.setText(article.name);
+                    tv1.setLayoutParams(titleLp);
 
-                    runOnUiThread(() -> {
-                        LinearLayout mainContainer = findViewById(R.id.LL1);
-                        for (int i2 = 0; i2 < articles.size(); i2++) {
-                            RssArticle article = articles.get(i2);
-                            LinearLayout listMain = new LinearLayout(PlaylistDisplay.this);
-                            listMain.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-
-                            LinearLayout.LayoutParams titleLp = new LinearLayout.LayoutParams(205,350);
-                            TextView tv1 = new TextView(PlaylistDisplay.this);
-                            tv1.setText(article.title);
-                            tv1.setLayoutParams(titleLp);
-
-                            LinearLayout.LayoutParams imageLp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,350);
-                            ImageView iv1 = new ImageView(PlaylistDisplay.this);
-                            iv1.setImageBitmap(article.image);
-                            iv1.setLayoutParams(imageLp);
-
-                            String link = article.link;
-                            Log.i("LINKS", link);
-                            listMain.setOnClickListener(v -> {
-                                Intent intent = new Intent(PlaylistDisplay.this, Article_Display.class);
-                                intent.putExtra("uri", link);
-                                startActivity(intent);
-                            });
-
-                            listMain.addView(tv1);
-                            listMain.addView(iv1);
-                            mainContainer.addView(listMain);
-                        }
+                    String link = article.link;
+                    Log.i("LINKS", link);
+                    LinearLayout listMain = new LinearLayout(PlaylistDisplay.this);
+                    listMain.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+                    listMain.setOnClickListener(v -> {
+                        Intent intent = new Intent(PlaylistDisplay.this, Article_Display.class);
+                        intent.putExtra("uri", link);
+                        startActivity(intent);
                     });
 
+                    listMain.addView(tv1);
+                    mainContainer.addView(listMain);
                 }
-            } catch (IOException e) {
-                Log.e("IOException:", Objects.requireNonNull(e.getMessage()));
-            }
+            });
         }).start();
         }
-    }
-
-    public static List<RssArticle> getFeedDetails(String feedUrl) throws IOException {
-        try {
-            OkHttpClient client = new OkHttpClient.Builder().followRedirects(true).build();
-
-            Request request = new Request.Builder().url(feedUrl).header("User-Agent", "RssFeedParser2/1.0").build();
-            String valResponse;
-            try (Response response = client.newCall(request).execute()) {
-                if (!response.isSuccessful()) {
-                    System.out.println("HTTP error: " + response.code());
-                    return null;
-                }
-                valResponse = response.body().string();
-            }
-
-            Pattern ITEM_PATTERN = Pattern.compile("<item[^>]*>(.*?)</item>", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
-
-            Pattern TITLE_PATTERN = Pattern.compile("<title[^>]*>\\s*(?:<!\\[CDATA\\[)?(.*?)(?:]]>)?\\s*</title>", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
-
-            Pattern LINK_PATTERN = Pattern.compile("<link[^>]*>\\s*(?:<!\\[CDATA\\[)?(.*?)(?:]]>)?\\s*</link>", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
-
-
-            Matcher articleMatcher = ITEM_PATTERN.matcher(valResponse);
-
-            List<RssArticle> articles = new ArrayList<>();
-
-            while (articleMatcher.find()) {
-                String block = articleMatcher.group(1);
-                RssArticle article = new RssArticle();
-
-                article.title = findString(TITLE_PATTERN, block);
-                article.link = findString(LINK_PATTERN, block);
-                try{
-                    article.image = findImage(block);
-                }catch(IOException e){
-                    Log.e("ERROR", "IOEXCEPTION");
-                }
-                
-
-                if (article.title != null){
-                    article.title = article.title.strip();
-                }
-
-                if (article.link != null) {
-                    article.link = article.link.strip();
-                }
-                articles.add(article);
-
-            }
-            return articles;
-        }catch (MalformedURLException mue) {
-            Log.i("Error", mue.toString());
-        } catch (IOException ioe) {
-            Log.i("Error", ioe.toString());
-        }
-        return null;
-    }
-
-    private static String findString(Pattern pattern, String text) {
-        Matcher m = pattern.matcher(text);
-
-        if(m.find()){
-            return m.group(1);
-        }
-        return null;
-    }
-
-
-    private static Bitmap findImage(String block) throws IOException {
-        Pattern IMG_PATTERN_1 = Pattern.compile("<media:(?:content|thumbnail)[^>]+url=[\"'](.*?)[\"']", Pattern.CASE_INSENSITIVE);
-
-        Pattern IMG_PATTERN_2 = Pattern.compile("<enclosure[^>]+url=[\"'](.*?)[\"'][^>]+type=[\"']image/", Pattern.CASE_INSENSITIVE);
-
-        Pattern IMG_PATTERN_3 = Pattern.compile("<img[^>]+src=[\"'](.*?)[\"']", Pattern.CASE_INSENSITIVE);
-
-        String img = findString(IMG_PATTERN_1, block);
-        if (img != null){
-            URL imgUrl = new URL(img);
-            return BitmapFactory.decodeStream(imgUrl.openStream());
-        }
-
-        img = findString(IMG_PATTERN_2, block);
-        if (img != null){
-            URL imgUrl = new URL(img);
-            return BitmapFactory.decodeStream(imgUrl.openStream());
-        }
-
-        img = findString(IMG_PATTERN_3, block);
-        if(img != null){
-            URL imgUrl = new URL(img);
-            return BitmapFactory.decodeStream(imgUrl.openStream());
-        }
-        return null;
-    }
-    public static class RssArticle {
-        public String title;
-        public String link;
-        public Bitmap image;
     }
 }
