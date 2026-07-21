@@ -3,22 +3,22 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+// import android.graphics.Bitmap;
+// import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.ImageView;
+// import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.EditText;
 
 import com.google.gson.Gson;
 
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+// import okhttp3.OkHttpClient;
+// import okhttp3.Request;
+// import okhttp3.Response;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -29,13 +29,13 @@ import androidx.core.view.WindowInsetsCompat;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
+// import java.net.MalformedURLException;
+// import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+// import java.util.regex.Matcher;
+// import java.util.regex.Pattern;
 
 
 public class PlaylistDisplay extends AppCompatActivity {
@@ -72,7 +72,8 @@ public class PlaylistDisplay extends AppCompatActivity {
                 .setPositiveButton("Okay", (dialog, which) -> dialog.dismiss())
                 .show();
             startActivity(new Intent(PlaylistDisplay.this, MainPlaylists.class));
-            finish(); return;
+            finish(); 
+            return;
         }
 
         for(int i = 0; i < playlists.size(); i++){
@@ -89,15 +90,9 @@ public class PlaylistDisplay extends AppCompatActivity {
                 .setPositiveButton("Okay", (dialog, which) -> dialog.dismiss())
                 .show();
             startActivity(new Intent(PlaylistDisplay.this, MainPlaylists.class));
+            finish(); 
+            return;
         }else{
-            List<String> finalUrls = new ArrayList<>();
-            for(int i = 0; i < playlist.list.size(); i++){
-                finalUrls.add(playlist.list.get(i).link);
-            }
-        
-
-        
-
         // Intent receiverIntent = getIntent();
         // String name = receiverIntent.getStringExtra("uri");
         // if(Objects.equals(name, "")){
@@ -116,33 +111,27 @@ public class PlaylistDisplay extends AppCompatActivity {
 
         //     List<String> finalUrls = gson.fromJson(jsonString, new TypeToken<List<String>>() {}.getType());
         // }
+            LinearLayout mainContainer = findViewById(R.id.LL1);
+            for (int i2 = 0; i2 < playlist.list.size(); i2++) {
+                Article article = playlist.list.get(i2);
 
-        new Thread(() -> {
-            runOnUiThread(() -> {
-                LinearLayout mainContainer = findViewById(R.id.LL1);
-                for (int i2 = 0; i2 < playlist.list.size(); i2++) {
-                    Article article = playlist.list.get(i2);
+                LinearLayout.LayoutParams titleLp = new LinearLayout.LayoutParams(205,350);
+                TextView tv1 = new TextView(PlaylistDisplay.this);
+                tv1.setText(article.name);
+                tv1.setLayoutParams(titleLp);
 
-                    LinearLayout.LayoutParams titleLp = new LinearLayout.LayoutParams(205,350);
-                    TextView tv1 = new TextView(PlaylistDisplay.this);
-                    tv1.setText(article.name);
-                    tv1.setLayoutParams(titleLp);
+                String link = article.link;
+                LinearLayout listMain = new LinearLayout(PlaylistDisplay.this);
+                listMain.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+                listMain.setOnClickListener(v -> {
+                    Intent intent = new Intent(PlaylistDisplay.this, Article_Display.class);
+                    intent.putExtra("uri", link);
+                    startActivity(intent);
+                });
 
-                    String link = article.link;
-                    Log.i("LINKS", link);
-                    LinearLayout listMain = new LinearLayout(PlaylistDisplay.this);
-                    listMain.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-                    listMain.setOnClickListener(v -> {
-                        Intent intent = new Intent(PlaylistDisplay.this, Article_Display.class);
-                        intent.putExtra("uri", link);
-                        startActivity(intent);
-                    });
-
-                    listMain.addView(tv1);
-                    mainContainer.addView(listMain);
-                }
-            });
-        }).start();
+                listMain.addView(tv1);
+                mainContainer.addView(listMain);
+            }
         }
     }
 }
