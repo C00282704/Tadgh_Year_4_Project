@@ -105,7 +105,6 @@ public class ChangeRSSFeeds extends AppCompatActivity {
             /////////////////////////////////////////////////////
 
             if (urls != null) {
-                final List<String> finalUrls = urls;
                 String newJString = prefs.getString("feedUrls", null);
                 List<String> selUrls = (newJString != null)
                 ? gson.fromJson(newJString, new TypeToken<List<String>>(){}.getType())
@@ -135,38 +134,43 @@ public class ChangeRSSFeeds extends AppCompatActivity {
                                 .setTitle("New Feed").setView(input)
                                 .setPositiveButton("Add", (dialog, which) -> {
                                         String userText = input.getText().toString().trim();
-                                        Boolean addDuplicate = true;
+                                        AtomicBoolean added = new AtomicBoolean(false);
                                         if (!userText.isEmpty() && isValidUrlSyntax(userText)) {
                                             String jsonString = prefs.getString("RSSFeeds", null);
                                             List<String> feeds;
                                             if (jsonString != null) {
                                                 try{
                                                     feeds = gson.fromJson(jsonString, new TypeToken<List<String>>() {}.getType());
+                                                    boolean duplicate = false;
                                                     for(int i=0; i < feeds.size(); i++){
-                                                        if(feeds.get(i).equals(userText)){
-                                                            new AlertDialog.Builder(v.getContext())
+                                                        if (f.equals(userText)) { 
+                                                            duplicate = true; 
+                                                            break; 
+                                                        }
+                                                    }
+                                                    if (duplicate) {
+                                                        new AlertDialog.Builder(v.getContext())
                                                             .setTitle("Duplicate")
                                                             .setMessage("That URL is already registered. Register it again?")
-                                                            .setPositiveButton("Yes", null)
-                                                            .setNegativeButton("No", {
-                                                                addDuplicate = false;
+                                                            .setPositiveButton("Yes", (d2, w2) -> {
+                                                                feeds.add(userText);
+                                                                prefs.edit().putString("RSSFeeds", gson.toJson(feeds)).apply();
+                                                                mainContainer.removeAllViews();
+                                                                prefLinks = createCheckBoxes(mainContainer, feeds, prefLinks, selectedUrls);
                                                             })
+                                                            .setNegativeButton("No", null)
                                                             .show();
-                                                            break;
-                                                        }
+                                                    } else {
+                                                        feeds.add(userText);
+                                                        prefs.edit().putString("RSSFeeds", gson.toJson(feeds)).apply();
+                                                        mainContainer.removeAllViews();
+                                                        prefLinks = createCheckBoxes(mainContainer, feeds, prefLinks, selectedUrls);
                                                     }
                                                 }catch(JsonSyntaxException j){
                                                     feeds = new ArrayList<>();
                                                 }
                                             } else {
                                                 feeds = new ArrayList<String>();
-                                            }
-                                            if(addDuplicate){
-                                                feeds.add(userText);
-                                                prefs.edit().putString("RSSFeeds", gson.toJson(feeds)).apply();
-                                                finish();
-                                                mainContainer.removeAllViews();
-                                                prefLinks = createCheckBoxes(mainContainer, finalUrls, prefLinks, List<String> selectedUrls);
                                             }
                                         }else{
                                             new AlertDialog.Builder(v.getContext())
@@ -180,7 +184,7 @@ public class ChangeRSSFeeds extends AppCompatActivity {
                                 .show();
                         }
                     });
-                prefLinks = createCheckBoxes(mainContainer, finalUrls, prefLinks, selectedUrls);
+                prefLinks = createCheckBoxes(mainContainer, feeds, prefLinks, selectedUrls);
                 applyButton.setEnabled(true);
 
                 });
@@ -202,26 +206,27 @@ public class ChangeRSSFeeds extends AppCompatActivity {
             return false;
         }
     }
-    public  List<String> createCheckBoxes(LinearLayout mainContainer, List<String> finalUrls, List<String> prefLinks, List<String> selectedUrls){
-        for (int i = 0; i < finalUrls.size(); i++) {
+    public  List<String> createCheckBoxes(LinearLayout mainContainer, List<String> feeds, List<String> prefLinks, List<String> selectedUrls){
+        prefLinks.clear();
+        for (int i = 0; i < feeds.size(); i++) {
             Log.i("LOG", "2-Printing");
             //Create button
             LinearLayout newLayout = new LinearLayout(ChangeRSSFeeds.this);
             CheckBox newCB = new CheckBox(ChangeRSSFeeds.this);
-            newCB.setText(finalUrls.get(i));
+            newCB.setText(feeds.get(i));
             int index = i;
             newCB.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     if (isChecked) {
-                        prefLinks.add(finalUrls.get(index));
+                        prefLinks.add(feeds.get(index));
                     } else {
-                        prefLinks.remove(finalUrls.get(index));
+                        prefLinks.remove(feeds.get(index));
                     }
                 }
             });
             for(int i2 = 0; i2 < selectedUrls.size(); i2++){
-                if(selectedUrls.get(i2).equals(finalUrls.get(i))){
+                if(selectedUrls.get(i2).equals(feeds.get(i))){
                     newCB.setChecked(true);
                     break;
                 }
