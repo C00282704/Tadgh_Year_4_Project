@@ -134,16 +134,15 @@ public class ChangeRSSFeeds extends AppCompatActivity {
                                 .setTitle("New Feed").setView(input)
                                 .setPositiveButton("Add", (dialog, which) -> {
                                         String userText = input.getText().toString().trim();
-                                        AtomicBoolean added = new AtomicBoolean(false);
                                         if (!userText.isEmpty() && isValidUrlSyntax(userText)) {
-                                            String jsonString = prefs.getString("RSSFeeds", null);
+                                            String jString = prefs.getString("RSSFeeds", null);
                                             List<String> feeds;
-                                            if (jsonString != null) {
+                                            if (jString != null) {
                                                 try{
-                                                    feeds = gson.fromJson(jsonString, new TypeToken<List<String>>() {}.getType());
+                                                    feeds = gson.fromJson(jString, new TypeToken<List<String>>() {}.getType());
                                                     boolean duplicate = false;
                                                     for(int i=0; i < feeds.size(); i++){
-                                                        if (f.equals(userText)) { 
+                                                        if (feeds.get(i).equals(userText)) { 
                                                             duplicate = true; 
                                                             break; 
                                                         }
@@ -184,7 +183,7 @@ public class ChangeRSSFeeds extends AppCompatActivity {
                                 .show();
                         }
                     });
-                prefLinks = createCheckBoxes(mainContainer, feeds, prefLinks, selectedUrls);
+                prefLinks = createCheckBoxes(mainContainer, urls, prefLinks, selectedUrls);
                 applyButton.setEnabled(true);
 
                 });
