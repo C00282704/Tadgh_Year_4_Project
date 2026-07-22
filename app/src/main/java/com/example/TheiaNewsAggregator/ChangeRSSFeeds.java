@@ -123,6 +123,7 @@ public class ChangeRSSFeeds extends AppCompatActivity {
                 //supabaseFeeds();
                 LinearLayout mainContainer = findViewById(R.id.LLMain);
 
+                final List<String> finalUrls = urls;
                 runOnUiThread(() -> {
                     ImageButton addButton = findViewById(R.id.addFeedButton);
                     addButton.setOnClickListener(new View.OnClickListener() {
@@ -148,14 +149,15 @@ public class ChangeRSSFeeds extends AppCompatActivity {
                                                         }
                                                     }
                                                     if (duplicate) {
+                                                        final List<String> finalFeeds = feeds;
                                                         new AlertDialog.Builder(v.getContext())
                                                             .setTitle("Duplicate")
                                                             .setMessage("That URL is already registered. Register it again?")
                                                             .setPositiveButton("Yes", (d2, w2) -> {
-                                                                feeds.add(userText);
-                                                                prefs.edit().putString("RSSFeeds", gson.toJson(feeds)).apply();
+                                                                finalFeeds.add(userText);
+                                                                prefs.edit().putString("RSSFeeds", gson.toJson(finalFeeds)).apply();
                                                                 mainContainer.removeAllViews();
-                                                                prefLinks = createCheckBoxes(mainContainer, feeds, prefLinks, selectedUrls);
+                                                                prefLinks = createCheckBoxes(mainContainer, finalFeeds, prefLinks, selectedUrls);
                                                             })
                                                             .setNegativeButton("No", null)
                                                             .show();
@@ -183,7 +185,7 @@ public class ChangeRSSFeeds extends AppCompatActivity {
                                 .show();
                         }
                     });
-                prefLinks = createCheckBoxes(mainContainer, urls, prefLinks, selectedUrls);
+                prefLinks = createCheckBoxes(mainContainer, finalUrls, prefLinks, selectedUrls);
                 applyButton.setEnabled(true);
 
                 });
