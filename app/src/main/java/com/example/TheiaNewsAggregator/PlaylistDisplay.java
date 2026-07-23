@@ -79,6 +79,7 @@ public class PlaylistDisplay extends AppCompatActivity {
         for(int i = 0; i < playlists.size(); i++){
             if(Objects.equals(playlists.get(i).name, playlistName)){
                 playlist = playlists.get(i);
+                Log.i("READ_CHECK", "size=" + playlist.list.size() + " json=" + gson.toJson(playlist));
                 break;
             }
         }
