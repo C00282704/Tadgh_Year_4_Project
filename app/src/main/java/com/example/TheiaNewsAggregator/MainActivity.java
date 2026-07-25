@@ -71,8 +71,7 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("Prefs", Context.MODE_PRIVATE);
         Gson gson = new Gson();
         String jsonString = prefs.getString("feedUrls", null);
-        List<String> urls = gson.fromJson(jsonString, new TypeToken<List<String>>() {
-        }.getType());
+        List<String> urls = gson.fromJson(jsonString, new TypeToken<List<String>>() {}.getType());
 
         if (urls == null || urls.isEmpty()) {
             List<String> list = new ArrayList<>();
@@ -196,35 +195,41 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private static Bitmap findImage(String block) throws IOException {
+    private static Bitmap findImage(String block) {
         Pattern IMG_PATTERN_1 = Pattern.compile("<media:(?:content|thumbnail)[^>]+url=[\"'](.*?)[\"']", Pattern.CASE_INSENSITIVE);
-
         Pattern IMG_PATTERN_2 = Pattern.compile("<enclosure[^>]+url=[\"'](.*?)[\"'][^>]+type=[\"']image/", Pattern.CASE_INSENSITIVE);
-
         Pattern IMG_PATTERN_3 = Pattern.compile("<img[^>]+src=[\"'](.*?)[\"']", Pattern.CASE_INSENSITIVE);
 
-        String img = findString(IMG_PATTERN_1, block);
-        if (img != null){
-            URL imgUrl = new URL(img);
-            return BitmapFactory.decodeStream(imgUrl.openStream());
-        }
+        Bitmap bmp = tryLoadImage(findString(IMG_PATTERN_1, block));
+        if (bmp != null) return bmp;
 
-        img = findString(IMG_PATTERN_2, block);
-        if (img != null){
-            URL imgUrl = new URL(img);
-            return BitmapFactory.decodeStream(imgUrl.openStream());
-        }
+        bmp = tryLoadImage(findString(IMG_PATTERN_2, block));
+        if (bmp != null) return bmp;
 
-        img = findString(IMG_PATTERN_3, block);
-        if(img != null){
-            URL imgUrl = new URL(img);
-            return BitmapFactory.decodeStream(imgUrl.openStream());
-        }
-        return null;
+        return tryLoadImage(findString(IMG_PATTERN_3, block));
     }
     public static class RssArticle {
         public String title;
         public String link;
         public Bitmap image;
+    }
+
+    private static boolean isPlaceholderImage(String url) {
+        if(url == null || url.contains("none-800.jpg") || url.contains("/none-")){
+            return true;
+        }
+        return false;
+    }
+    private static Bitmap tryLoadImage(String url) {
+        if(url == null || url.contains("none-800.jpg") || url.contains("/none-")){
+            return null;
+        }
+        try {
+            URL imgUrl = new URL(url);
+            return BitmapFactory.decodeStream(imgUrl.openStream());
+        } catch (IOException e) {
+            Log.w("ImageLoad", "Failed to load image: " + url);
+            return null;
+        }
     }
 }

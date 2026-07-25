@@ -3,21 +3,22 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+// import android.graphics.Bitmap;
+// import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.ImageView;
+// import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.EditText;
 
 import com.google.gson.Gson;
 
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+// import okhttp3.OkHttpClient;
+// import okhttp3.Request;
+// import okhttp3.Response;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -28,13 +29,13 @@ import androidx.core.view.WindowInsetsCompat;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
+// import java.net.MalformedURLException;
+// import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+// import java.util.regex.Matcher;
+// import java.util.regex.Pattern;
 
 
 public class PlaylistDisplay extends AppCompatActivity {
@@ -56,123 +57,82 @@ public class PlaylistDisplay extends AppCompatActivity {
             }
         });
 
+        SharedPreferences prefs = getSharedPreferences("Prefs", Context.MODE_PRIVATE);
+        Gson gson = new Gson();
+        String jsonString = prefs.getString("Playlists", null);
+        List<Playlist> playlists = gson.fromJson(jsonString, new TypeToken<List<Playlist>>() {}.getType());
         Intent receiverIntent = getIntent();
-        String name = receiverIntent.getStringExtra("uri");
-        if(Objects.equals(name, "")){
+        String playlistName = receiverIntent.getStringExtra("playlist");
+        Playlist playlist = null;
+        if(playlists == null){
+            Log.i("ERROR", "PLaylists is Null");
+            EditText input = new EditText(PlaylistDisplay.this);
             new AlertDialog.Builder(PlaylistDisplay.this)
-                    .setTitle("Playlist Empty")
-                    .setPositiveButton("Return", (dialog, which) -> {
-                        finish();
-                        Intent intent = new Intent(PlaylistDisplay.this, MainPlaylists.class);
-                        startActivity(intent);
-                    })
-                    .show();
+                .setTitle("Playlist is Null").setView(input)
+                .setPositiveButton("Okay", (dialog, which) -> dialog.dismiss())
+                .show();
+            startActivity(new Intent(PlaylistDisplay.this, MainPlaylists.class));
+            finish(); 
+            return;
+        }
+
+        for(int i = 0; i < playlists.size(); i++){
+            if(Objects.equals(playlists.get(i).name, playlistName)){
+                playlist = playlists.get(i);
+                Log.i("READ_CHECK", "size=" + playlist.list.size() + " json=" + gson.toJson(playlist));
+                break;
+            }
+        }
+        if(playlist == null){
+            Log.i("ERROR", "Playlist is Null");
+            EditText input = new EditText(PlaylistDisplay.this);
+            new AlertDialog.Builder(PlaylistDisplay.this)
+                .setTitle("Playlist is Null").setView(input)
+                .setPositiveButton("Okay", (dialog, which) -> dialog.dismiss())
+                .show();
+            startActivity(new Intent(PlaylistDisplay.this, MainPlaylists.class));
+            finish(); 
+            return;
         }else{
-            SharedPreferences prefs = getSharedPreferences("Prefs", Context.MODE_PRIVATE);
-            Gson gson = new Gson();
-            String jsonString = prefs.getString(name, null);
+        // Intent receiverIntent = getIntent();
+        // String name = receiverIntent.getStringExtra("uri");
+        // if(Objects.equals(name, "")){
+        //     new AlertDialog.Builder(PlaylistDisplay.this)
+        //             .setTitle("Playlist Empty")
+        //             .setPositiveButton("Return", (dialog, which) -> {
+        //                 finish();
+        //                 Intent intent = new Intent(PlaylistDisplay.this, MainPlaylists.class);
+        //                 startActivity(intent);
+        //             })
+        //             .show();
+        // }else{
+        //     SharedPreferences prefs = getSharedPreferences("Prefs", Context.MODE_PRIVATE);
+        //     Gson gson = new Gson();
+        //     String jsonString = prefs.getString(name, null);
 
-            List<String> finalUrls = gson.fromJson(jsonString, new TypeToken<List<String>>() {}.getType());
-        }
-    }
+        //     List<String> finalUrls = gson.fromJson(jsonString, new TypeToken<List<String>>() {}.getType());
+        // }
+            LinearLayout mainContainer = findViewById(R.id.LL1);
+            for (int i2 = 0; i2 < playlist.list.size(); i2++) {
+                Article article = playlist.list.get(i2);
 
-    public static List<MainActivity.RssArticle> getFeedDetails(String feedUrl) throws IOException {
-        try {
-            OkHttpClient client = new OkHttpClient.Builder()
-                    .followRedirects(true)
-                    .build();
+                LinearLayout.LayoutParams titleLp = new LinearLayout.LayoutParams(205,350);
+                TextView tv1 = new TextView(PlaylistDisplay.this);
+                tv1.setText(article.name);
+                tv1.setLayoutParams(titleLp);
 
-            Request request = new Request.Builder()
-                    .url(feedUrl)
-                    .header("User-Agent", "RssFeedParser2/1.0")
-                    .build();
-            String valResponse;
-            try (Response response = client.newCall(request).execute()) {
-                if (!response.isSuccessful()) {
-                    System.out.println("HTTP error: " + response.code());
-                    return null;
-                }
-                valResponse = response.body().string();
+                String link = article.link;
+                LinearLayout listMain = new LinearLayout(PlaylistDisplay.this);
+                listMain.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+                listMain.setOnClickListener(v -> {
+                    Intent intent = new Intent(PlaylistDisplay.this, Article_Display.class);
+                    intent.putExtra("uri", link);
+                    startActivity(intent);
+                });
+
+                listMain.addView(tv1);
+                mainContainer.addView(listMain);
             }
-
-            Pattern ITEM_PATTERN = Pattern.compile("<item[^>]*>(.*?)</item>", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
-
-            Pattern TITLE_PATTERN = Pattern.compile("<title[^>]*>\\s*(?:<!\\[CDATA\\[)?(.*?)(?:]]>)?\\s*</title>", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
-
-            Pattern LINK_PATTERN = Pattern.compile("<link[^>]*>\\s*(?:<!\\[CDATA\\[)?(.*?)(?:]]>)?\\s*</link>", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
-
-
-            Matcher articleMatcher = ITEM_PATTERN.matcher(valResponse);
-
-            List<MainActivity.RssArticle> articles = new ArrayList<>();
-
-            while (articleMatcher.find()) {
-                String block = articleMatcher.group(1);
-                MainActivity.RssArticle article = new MainActivity.RssArticle();
-
-                article.title = findString(TITLE_PATTERN, block);
-                article.link = findString(LINK_PATTERN, block);
-                article.image = findImage(block);
-
-                // Clean up any stray whitespace / newlines
-                if (article.title != null){
-                    article.title = article.title.strip();
-                }
-
-                if (article.link != null) {
-                    article.link = article.link.strip();
-                }
-                articles.add(article);
-
-            }
-            return articles;
-        }catch (MalformedURLException mue) {
-            System.out.println("Malformed URL");
-        } catch (IOException ioe) {
-            System.out.println("Something went wrong reading the contents");
         }
-        return null;
-    }
-
-    private static String findString(Pattern pattern, String text) {
-        Matcher m = pattern.matcher(text);
-
-        if(m.find()){
-            return m.group(1);
-        }
-        return null;
-    }
-
-
-    private static Bitmap findImage(String block) throws IOException {
-        Pattern IMG_PATTERN_1 = Pattern.compile("<media:(?:content|thumbnail)[^>]+url=[\"'](.*?)[\"']", Pattern.CASE_INSENSITIVE);
-
-        Pattern IMG_PATTERN_2 = Pattern.compile("<enclosure[^>]+url=[\"'](.*?)[\"'][^>]+type=[\"']image/", Pattern.CASE_INSENSITIVE);
-
-        Pattern IMG_PATTERN_3 = Pattern.compile("<img[^>]+src=[\"'](.*?)[\"']", Pattern.CASE_INSENSITIVE);
-
-        String img = findString(IMG_PATTERN_1, block);
-        if (img != null){
-            URL imgUrl = new URL(img);
-            return BitmapFactory.decodeStream(imgUrl.openStream());
-        }
-
-        img = findString(IMG_PATTERN_2, block);
-        if (img != null){
-            URL imgUrl = new URL(img);
-            return BitmapFactory.decodeStream(imgUrl.openStream());
-        }
-
-        img = findString(IMG_PATTERN_3, block);
-        if(img != null){
-            URL imgUrl = new URL(img);
-            return BitmapFactory.decodeStream(imgUrl.openStream());
-        }
-        return null;
-    }
-    public static class RssArticle {
-        public String title;
-        public String link;
-        public Bitmap image;
     }
 }

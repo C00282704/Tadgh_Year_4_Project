@@ -104,27 +104,25 @@ public class MainPlaylists extends AppCompatActivity {
                     for (int i = 0; i < playlists.size(); i++) {
                         Log.i("CREATED", "Created");
 
+                        final Playlist playlist = playlists.get(i);
                         LinearLayout newLayout = new LinearLayout(MainPlaylists.this);
                         TextView title = new TextView(MainPlaylists.this);
-                        title.setText(playlists.get(i).name);//Playlist name
-                        Log.i("Playlist Name:", playlists.get(i).name);
+                        title.setText(playlist.name);
+                        Log.i("Playlist Name:", playlist.name);
 
-                        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(205,350);
+                        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(205, 350);
                         title.setLayoutParams(lp);
                         title.setGravity(Gravity.CENTER);
-                        title.setTextSize(1 , 25);
+                        title.setTextSize(1, 25);
 
                         ImageView folder = new ImageView(MainPlaylists.this);
                         folder.setImageDrawable(getDrawable(R.drawable.file));
                         newLayout.addView(folder);
                         newLayout.addView(title);
-                        String pl = prefs.getString(playlists.get(i).name, null);
-                        newLayout.setOnClickListener(new View.OnClickListener() {
-                            public void onClick(View v) {
-                                Intent intent = new Intent(MainPlaylists.this, PlaylistDisplay.class);
-                                intent.putExtra("playlist", pl);
-                                startActivity(intent);
-                            }
+                        newLayout.setOnClickListener(v -> {
+                            Intent intent = new Intent(MainPlaylists.this, PlaylistDisplay.class);
+                            intent.putExtra("playlist", playlist.name);
+                            startActivity(intent);
                         });
                         scrollList.addView(newLayout);
                     }

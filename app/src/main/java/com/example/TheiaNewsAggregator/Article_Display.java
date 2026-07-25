@@ -146,13 +146,14 @@ public class Article_Display extends AppCompatActivity {
                                 .setPositiveButton("Yes", (dialog2, selectOpt) -> {
                                     String name = input.getText().toString();
                                     playlistArray[selectedIndex[0]].addArticle(new Article(name, uri));
-                                    prefs.edit().putString("Playlists", gson.toJson(playlists)).apply();
+                                    prefs.edit().putString("Playlists", gson.toJson(playlistArray)).apply();
+                                    Log.i("SAVE_CHECK_POS", gson.toJson(playlistArray));;
                                 })
                                 .setNegativeButton("No", (dialog2, selectOpt) -> {
-                                    dialog2.dismiss();
                                     String name = uri;
                                     playlistArray[selectedIndex[0]].addArticle(new Article(name, uri));
-                                    prefs.edit().putString("Playlists", gson.toJson(playlists)).apply();
+                                    prefs.edit().putString("Playlists", gson.toJson(playlistArray)).apply();
+                                    Log.i("SAVE_CHECK_NEG", gson.toJson(playlistArray));;
                                 })
                                 .show();
                         })
