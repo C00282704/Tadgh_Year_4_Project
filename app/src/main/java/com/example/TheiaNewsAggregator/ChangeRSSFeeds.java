@@ -41,6 +41,7 @@ import java.util.List;
 import android.webkit.URLUtil;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.concurrent.TimeUnit;
 
 public class ChangeRSSFeeds extends AppCompatActivity {
 
@@ -48,6 +49,7 @@ public class ChangeRSSFeeds extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.i("STARTED", "HELOO");
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_change_rssfeeds);
@@ -117,7 +119,6 @@ public class ChangeRSSFeeds extends AppCompatActivity {
                     selUrls = new ArrayList<String>();
                 }
                 final List<String> selectedUrls = selUrls;
-                //supabaseFeeds();
                 LinearLayout mainContainer = findViewById(R.id.LLMain);
 
                 final List<String> finalUrls = urls;
@@ -153,7 +154,7 @@ public class ChangeRSSFeeds extends AppCompatActivity {
                                                             finalFeeds.add(userText);
                                                             prefs.edit().putString("RSSFeeds", gson.toJson(finalFeeds)).apply();
                                                             mainContainer.removeAllViews();
-                                                            prefLinks = createCheckBoxes(mainContainer, finalFeeds, prefLinks, selectedUrls);
+                                                            createCheckBoxes(mainContainer, finalFeeds, prefLinks, selectedUrls);
                                                         })
                                                         .setNegativeButton("No", null)
                                                         .show();
@@ -161,7 +162,7 @@ public class ChangeRSSFeeds extends AppCompatActivity {
                                                     feeds.add(userText);
                                                     prefs.edit().putString("RSSFeeds", gson.toJson(feeds)).apply();
                                                     mainContainer.removeAllViews();
-                                                    prefLinks = createCheckBoxes(mainContainer, feeds, prefLinks, selectedUrls);
+                                                    createCheckBoxes(mainContainer, feeds, prefLinks, selectedUrls);
                                                 }
                                             }catch(JsonSyntaxException j){
                                                 feeds = new ArrayList<>();
@@ -181,7 +182,7 @@ public class ChangeRSSFeeds extends AppCompatActivity {
                             .show();
                     }
                 });
-            prefLinks = createCheckBoxes(mainContainer, finalUrls, prefLinks, selectedUrls);
+            createCheckBoxes(mainContainer, finalUrls, prefLinks, selectedUrls);
             applyButton.setEnabled(true);
         }
             // }).start();
@@ -201,7 +202,7 @@ public class ChangeRSSFeeds extends AppCompatActivity {
             return false;
         }
     }
-    public  List<String> createCheckBoxes(LinearLayout mainContainer, List<String> feeds, List<String> prefLinks, List<String> selectedUrls){
+    public  void createCheckBoxes(LinearLayout mainContainer, List<String> feeds, List<String> prefLinks, List<String> selectedUrls){
         prefLinks.clear();
         supabaseFeeds(mainContainer);
         runOnUiThread(() -> {
@@ -235,17 +236,20 @@ public class ChangeRSSFeeds extends AppCompatActivity {
                 newLayout.addView(newCB);
                 mainContainer.addView(newLayout);
             }
-            return prefLinks;
-            });
+        });
     }
     public void supabaseFeeds(LinearLayout mainContainer){
+        Log.e("SUPABASE", "about to start thread");
         new Thread(() -> {
-                List<String> names = new ArrayList<>();
+            List<String> names = new ArrayList<>();
             List<Bitmap> images = new ArrayList<>();
             List<String> links = new ArrayList<>();
             String url = "https://zganowuduwhsgxdhlxcl.supabase.co/rest/v1/RSSFeeds";
-            String key = "";
-            OkHttpClient client = new OkHttpClient();
+            String key = "sb_publishable_vSfZh1SKFxeBtuTdmErOSQ_hI7Ml1rU";
+            OkHttpClient client = new OkHttpClient.Builder()
+                    .connectTimeout(5, TimeUnit.SECONDS)
+                    .readTimeout(5, TimeUnit.SECONDS)
+                    .build();
 
             Request request = new Request.Builder().url(url).addHeader("apikey", key).addHeader("Authorization", "Bearer " + key).build();
 
@@ -253,6 +257,9 @@ public class ChangeRSSFeeds extends AppCompatActivity {
                 String responseString = "";
                 if (response.body() != null) {
                     responseString = response.body().string();
+                    Log.e("SUPABASE", "code=" + response.code() + " body=" + responseString);
+                }else{
+                    Log.e("SUPABASE_FAIL", "code=" + response.code() + " body=" + responseString);
                 }
 
                 JSONArray jsonArray = new JSONArray(responseString);
@@ -265,6 +272,7 @@ public class ChangeRSSFeeds extends AppCompatActivity {
                         names.add(feedName);
                         String link = row.getString("link");
                         links.add(link);
+                        Log.i("LINK", "YAAS");
                     }
                 }
 
@@ -287,8 +295,10 @@ public class ChangeRSSFeeds extends AppCompatActivity {
                     }
                 }
             } catch (IOException e) {
+                Log.i("IOException", "code=" + e);
                 throw new RuntimeException(e);
             } catch (JSONException e) {
+                Log.i("JSONException", "code=" + e);
                 throw new RuntimeException(e);
             }
             if (names != null) {
@@ -325,7 +335,7 @@ public class ChangeRSSFeeds extends AppCompatActivity {
                         mainContainer.addView(newLayout);
                     }
                 });
-            }});
+            }}).start();
     }
 
 }
