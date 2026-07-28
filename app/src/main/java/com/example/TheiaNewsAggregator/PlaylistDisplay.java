@@ -13,6 +13,8 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.EditText;
+import android.widget.Button;
+import android.widget.PopupMenu;
 
 import com.google.gson.Gson;
 
@@ -69,10 +71,11 @@ public class PlaylistDisplay extends AppCompatActivity {
             EditText input = new EditText(PlaylistDisplay.this);
             new AlertDialog.Builder(PlaylistDisplay.this)
                 .setTitle("Playlist is Null").setView(input)
-                .setPositiveButton("Okay", (dialog, which) -> dialog.dismiss())
+                .setPositiveButton("Okay", (dialog, which) -> {
+                    startActivity(new Intent(PlaylistDisplay.this, MainPlaylists.class));
+                    finish(); 
+                })
                 .show();
-            startActivity(new Intent(PlaylistDisplay.this, MainPlaylists.class));
-            finish(); 
             return;
         }
 
@@ -116,6 +119,8 @@ public class PlaylistDisplay extends AppCompatActivity {
             for (int i2 = 0; i2 < playlist.list.size(); i2++) {
                 Article article = playlist.list.get(i2);
 
+                int index = i2;
+
                 LinearLayout.LayoutParams titleLp = new LinearLayout.LayoutParams(205,350);
                 TextView tv1 = new TextView(PlaylistDisplay.this);
                 tv1.setText(article.name);
@@ -130,7 +135,66 @@ public class PlaylistDisplay extends AppCompatActivity {
                     startActivity(intent);
                 });
 
+                Button editButton = new Button(PlaylistDisplay.this);
+                editButton.setText(getResources().getString(R.string.edit));
+                editButton.setOnClickListener(v -> {
+                    PopupMenu popupMenu = new PopupMenu(this, v);
+                    popupMenu.getMenuInflater().inflate(R.menu.editArticleBtn, popupMenu.getMenu());
+
+                    popupMenu.setOnMenuItemClickListener(item -> {
+                        int itemId = item.getItemId();
+                        if (itemId == R.id.changeName) {
+                            EditText input = new EditText(v.getContext());
+                            input.setHint("Enter new name");
+                            new AlertDialog.Builder(v.getContext())
+                                .setTitle("Change Name").setView(input)
+                                .setPositiveButton("Apply", (dialog, which) -> {
+                                        String userText = input.getText().toString();
+                                        if (!userText.isEmpty()) {
+                                            playlist.list.get(i2).name = userText;
+                                            for(int i3 = 0; i3 < playlists.size(); i3++){
+                                                if(Objects.equals(playlists.get(i3).name, playlist.name)){
+                                                    playlists.set(i3, playlist);
+                                                    prefs.edit().putString("Playlists", gson.toJson(playlists)).apply();
+                                                    Intent intent = new Intent(PlaylistDisplay.this, PlaylistDisplay.class);
+                                                    intent.putExtra("playlist", playlist.name);
+                                                    startActivity(intent);
+                                                    break;
+                                                }
+                                            }
+                                        }
+
+                                    })
+                                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                                .show();
+                            return true;
+                        } else if (itemId == R.id.delete) {
+                            new AlertDialog.Builder(v.getContext()) //make sure user wants to delete playlist
+                                .setTitle("Delete "+article.name+"?")
+                                .setPositiveButton("Yes", (dialog, which) -> {
+                                        playlist.list.remove(index);
+                                        for(int i3 = 0; i3 < playlists.size(); i3++){
+                                            if(Objects.equals(playlists.get(i3).name, playlist.name)){
+                                                playlists.set(i3, playlist);
+                                                prefs.edit().putString("Playlists", gson.toJson(playlists)).apply();
+                                                Intent intent = new Intent(PlaylistDisplay.this, PlaylistDisplay.class);
+                                                intent.putExtra("playlist", playlist.name);
+                                                startActivity(intent);
+                                                break;
+                                            }
+                                        }
+                                    })
+                                .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
+                                .show();
+                            return true;
+                        }
+                        return false;
+                    });
+                    popupMenu.show();
+                });
+
                 listMain.addView(tv1);
+                listMain.addView(editButton);
                 mainContainer.addView(listMain);
             }
         }

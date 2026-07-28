@@ -12,5 +12,6 @@
     <string name="Apply">Apply</string>
     <string name="Exit">Exit</string>
     <string name="AddFeed">Add Feed</string>
+    <string name="Edit">Edit</string>
 
 </resources>

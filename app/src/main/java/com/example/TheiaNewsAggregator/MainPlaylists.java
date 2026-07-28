@@ -15,6 +15,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.PopupMenu;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -57,6 +58,16 @@ public class MainPlaylists extends AppCompatActivity {
             }
         });
 
+        SharedPreferences prefs = getSharedPreferences("Prefs", Context.MODE_PRIVATE);
+        Gson gson = new Gson();
+        String jsonString = prefs.getString("Playlists", null);
+        List<Playlist> playlists;
+        if (jsonString != null) {
+            playlists = gson.fromJson(jsonString, new TypeToken<List<Playlist>>() {}.getType());
+        } else {
+            playlists = new ArrayList<Playlist>();
+        }
+
         ImageButton addButton = findViewById(R.id.addPlaylistButton);
         addButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -67,44 +78,28 @@ public class MainPlaylists extends AppCompatActivity {
                     .setPositiveButton("Create", (dialog, which) -> {
                             String userText = input.getText().toString();
                             if (!userText.isEmpty()) {
-                                SharedPreferences prefs = getSharedPreferences("Prefs", Context.MODE_PRIVATE);
-                                Gson gson = new Gson();
-
-                                //prefs.edit().putString(userText, gson.toJson(new ArrayList<>())).apply();
-
-                                String jsonString = prefs.getString("Playlists", null);
-                                List<Playlist> playlists;
-                                if (jsonString != null) {
-                                    playlists = gson.fromJson(jsonString, new TypeToken<List<Playlist>>() {}.getType());
-                                } else {
-                                    playlists = new ArrayList<Playlist>();
-                                }
-                                
                                 playlists.add(new Playlist(userText));
                                 prefs.edit().putString("Playlists", gson.toJson(playlists)).apply();
                             }
-                            finish();
-                            Intent intent = new Intent(MainPlaylists.this, MainPlaylists.class);
-                            startActivity(intent);
+                            displayPlaylists(playlists);
                         })
                         .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
                         .show();
             }
         });
-
+        displayPlaylists(playlists);
+    }
+    private void displayPlaylists(List<Playlist> playlists){
         new Thread(() -> {
-            SharedPreferences prefs = getSharedPreferences("Prefs", Context.MODE_PRIVATE);
-            Log.i("PREFERENCES", prefs.toString());
-            Gson gson = new Gson();
-            String jsonString = prefs.getString("Playlists", null);
-            List<Playlist> playlists = gson.fromJson(jsonString, new TypeToken<List<Playlist>>() {}.getType());
             if(playlists != null){
                 runOnUiThread(() -> {
                     LinearLayout scrollList = findViewById(R.id.LL1);
+                    scrollList.removeAllViews();
                     for (int i = 0; i < playlists.size(); i++) {
                         Log.i("CREATED", "Created");
+                        final int index = i;
 
-                        final Playlist playlist = playlists.get(i);
+                        final Playlist playlist = playlists.get(index);
                         LinearLayout newLayout = new LinearLayout(MainPlaylists.this);
                         TextView title = new TextView(MainPlaylists.this);
                         title.setText(playlist.name);
@@ -124,7 +119,51 @@ public class MainPlaylists extends AppCompatActivity {
                             intent.putExtra("playlist", playlist.name);
                             startActivity(intent);
                         });
-                        scrollList.addView(newLayout);
+                        Button editButton = new Button(MainPlaylists.this);
+                        editButton.setText(getResources().getString(R.string.edit));
+                        editButton.setOnClickListener(v -> {
+                            PopupMenu popupMenu = new PopupMenu(this, v);
+                            popupMenu.getMenuInflater().inflate(R.menu.editPlaylistBtn, popupMenu.getMenu());
+
+                            popupMenu.setOnMenuItemClickListener(item -> {
+                                int itemId = item.getItemId();
+                                if (itemId == R.id.changeName) {
+                                    EditText input = new EditText(v.getContext());
+                                    input.setHint("Enter new name");
+                                    new AlertDialog.Builder(v.getContext())
+                                        .setTitle("Change Name").setView(input)
+                                        .setPositiveButton("Apply", (dialog, which) -> {
+                                                String userText = input.getText().toString();
+                                                if (!userText.isEmpty()) {
+                                                    playlists.get(index).name = userText;
+                                                    prefs.edit().putString("Playlists", gson.toJson(playlists)).apply();
+                                                }
+                                                displayPlaylists(playlists);
+                                            })
+                                        .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                                        .show();
+                                    return true;
+                                } else if (itemId == R.id.delete) {
+                                    new AlertDialog.Builder(v.getContext()) //make sure user wants to delete playlist
+                                        .setTitle("Delete "+playlist.name+"?")
+                                        .setPositiveButton("Yes", (dialog, which) -> {
+                                                playlists.remove(index);
+                                                prefs.edit().putString("Playlists", gson.toJson(playlists)).apply();
+                                                displayPlaylists(playlists);
+                                            })
+                                        .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
+                                        .show();
+                                    return true;
+                                }
+                                return false;
+                            });
+                            popupMenu.show();
+                        });
+
+                        LinearLayout collectionLayout = new LinearLayout(MainPlaylists.this);
+                        collectionLayout.addView(newLayout);
+                        collectionLayout.addView(editButton);
+                        scrollList.addView(collectionLayout);
                     }
                 });
             }
