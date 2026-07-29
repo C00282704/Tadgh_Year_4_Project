@@ -91,6 +91,8 @@ public class MainPlaylists extends AppCompatActivity {
     }
     private void displayPlaylists(List<Playlist> playlists){
         new Thread(() -> {
+            SharedPreferences prefs = getSharedPreferences("Prefs", Context.MODE_PRIVATE);
+            Gson gson = new Gson();
             if(playlists != null){
                 runOnUiThread(() -> {
                     LinearLayout scrollList = findViewById(R.id.LL1);
@@ -120,10 +122,10 @@ public class MainPlaylists extends AppCompatActivity {
                             startActivity(intent);
                         });
                         Button editButton = new Button(MainPlaylists.this);
-                        editButton.setText(getResources().getString(R.string.edit));
+                        editButton.setText(getResources().getString(R.string.Edit));
                         editButton.setOnClickListener(v -> {
                             PopupMenu popupMenu = new PopupMenu(this, v);
-                            popupMenu.getMenuInflater().inflate(R.menu.editPlaylistBtn, popupMenu.getMenu());
+                            popupMenu.getMenuInflater().inflate(R.menu.edit_playlist_btn, popupMenu.getMenu());
 
                             popupMenu.setOnMenuItemClickListener(item -> {
                                 int itemId = item.getItemId();

@@ -118,6 +118,8 @@ public class PlaylistDisplay extends AppCompatActivity {
             LinearLayout mainContainer = findViewById(R.id.LL1);
             for (int i2 = 0; i2 < playlist.list.size(); i2++) {
                 Article article = playlist.list.get(i2);
+                String plName = playlist.name;
+                final Playlist finalPlaylist = playlist;
 
                 int index = i2;
 
@@ -136,10 +138,10 @@ public class PlaylistDisplay extends AppCompatActivity {
                 });
 
                 Button editButton = new Button(PlaylistDisplay.this);
-                editButton.setText(getResources().getString(R.string.edit));
+                editButton.setText(getResources().getString(R.string.Edit));
                 editButton.setOnClickListener(v -> {
                     PopupMenu popupMenu = new PopupMenu(this, v);
-                    popupMenu.getMenuInflater().inflate(R.menu.editArticleBtn, popupMenu.getMenu());
+                    popupMenu.getMenuInflater().inflate(R.menu.edit_article_btn, popupMenu.getMenu());
 
                     popupMenu.setOnMenuItemClickListener(item -> {
                         int itemId = item.getItemId();
@@ -151,14 +153,15 @@ public class PlaylistDisplay extends AppCompatActivity {
                                 .setPositiveButton("Apply", (dialog, which) -> {
                                         String userText = input.getText().toString();
                                         if (!userText.isEmpty()) {
-                                            playlist.list.get(i2).name = userText;
+                                            article.name = userText;
                                             for(int i3 = 0; i3 < playlists.size(); i3++){
-                                                if(Objects.equals(playlists.get(i3).name, playlist.name)){
-                                                    playlists.set(i3, playlist);
+                                                if(Objects.equals(playlists.get(i3).name, plName)){
+                                                    playlists.set(i3, finalPlaylist);
                                                     prefs.edit().putString("Playlists", gson.toJson(playlists)).apply();
                                                     Intent intent = new Intent(PlaylistDisplay.this, PlaylistDisplay.class);
-                                                    intent.putExtra("playlist", playlist.name);
+                                                    intent.putExtra("playlist", plName);
                                                     startActivity(intent);
+                                                    finish();
                                                     break;
                                                 }
                                             }
@@ -172,14 +175,15 @@ public class PlaylistDisplay extends AppCompatActivity {
                             new AlertDialog.Builder(v.getContext()) //make sure user wants to delete playlist
                                 .setTitle("Delete "+article.name+"?")
                                 .setPositiveButton("Yes", (dialog, which) -> {
-                                        playlist.list.remove(index);
+                                        finalPlaylist.list.remove(index);
                                         for(int i3 = 0; i3 < playlists.size(); i3++){
-                                            if(Objects.equals(playlists.get(i3).name, playlist.name)){
-                                                playlists.set(i3, playlist);
+                                            if(Objects.equals(playlists.get(i3).name, plName)){
+                                                playlists.set(i3, finalPlaylist);
                                                 prefs.edit().putString("Playlists", gson.toJson(playlists)).apply();
                                                 Intent intent = new Intent(PlaylistDisplay.this, PlaylistDisplay.class);
-                                                intent.putExtra("playlist", playlist.name);
+                                                intent.putExtra("playlist", plName);
                                                 startActivity(intent);
+                                                finish();
                                                 break;
                                             }
                                         }
