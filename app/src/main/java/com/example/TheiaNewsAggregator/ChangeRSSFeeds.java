@@ -185,7 +185,6 @@ public class ChangeRSSFeeds extends AppCompatActivity {
             createCheckBoxes(mainContainer, finalUrls, prefLinks, selectedUrls);
             applyButton.setEnabled(true);
         }
-            // }).start();
     }
 
     public boolean isValidUrlSyntax(String urlString) {
@@ -196,7 +195,7 @@ public class ChangeRSSFeeds extends AppCompatActivity {
             return false;
         }
         try {
-            new URL(urlString); // throws if truly malformed
+            new URL(urlString); // Throws if malformed
             return urlString.startsWith("http://") || urlString.startsWith("https://");
         } catch (MalformedURLException e) {
             return false;

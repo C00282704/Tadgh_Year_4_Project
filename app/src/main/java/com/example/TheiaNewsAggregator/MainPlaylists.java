@@ -31,8 +31,6 @@ import java.util.List;
 
 
 public class MainPlaylists extends AppCompatActivity {
-    List<String> prefLinks = new ArrayList<>();
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

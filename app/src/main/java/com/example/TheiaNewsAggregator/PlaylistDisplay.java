@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageButton;
 // import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -94,27 +95,8 @@ public class PlaylistDisplay extends AppCompatActivity {
                 .setPositiveButton("Okay", (dialog, which) -> dialog.dismiss())
                 .show();
             startActivity(new Intent(PlaylistDisplay.this, MainPlaylists.class));
-            finish(); 
-            return;
+            finish();
         }else{
-        // Intent receiverIntent = getIntent();
-        // String name = receiverIntent.getStringExtra("uri");
-        // if(Objects.equals(name, "")){
-        //     new AlertDialog.Builder(PlaylistDisplay.this)
-        //             .setTitle("Playlist Empty")
-        //             .setPositiveButton("Return", (dialog, which) -> {
-        //                 finish();
-        //                 Intent intent = new Intent(PlaylistDisplay.this, MainPlaylists.class);
-        //                 startActivity(intent);
-        //             })
-        //             .show();
-        // }else{
-        //     SharedPreferences prefs = getSharedPreferences("Prefs", Context.MODE_PRIVATE);
-        //     Gson gson = new Gson();
-        //     String jsonString = prefs.getString(name, null);
-
-        //     List<String> finalUrls = gson.fromJson(jsonString, new TypeToken<List<String>>() {}.getType());
-        // }
             LinearLayout mainContainer = findViewById(R.id.LL1);
             for (int i2 = 0; i2 < playlist.list.size(); i2++) {
                 Article article = playlist.list.get(i2);
@@ -123,10 +105,11 @@ public class PlaylistDisplay extends AppCompatActivity {
 
                 int index = i2;
 
-                LinearLayout.LayoutParams titleLp = new LinearLayout.LayoutParams(205,350);
+                LinearLayout.LayoutParams titleLp = new LinearLayout.LayoutParams(300,150);
                 TextView tv1 = new TextView(PlaylistDisplay.this);
                 tv1.setText(article.name);
                 tv1.setLayoutParams(titleLp);
+                tv1.setTextSize(30);
 
                 String link = article.link;
                 LinearLayout listMain = new LinearLayout(PlaylistDisplay.this);
@@ -139,6 +122,9 @@ public class PlaylistDisplay extends AppCompatActivity {
 
                 Button editButton = new Button(PlaylistDisplay.this);
                 editButton.setText(getResources().getString(R.string.Edit));
+                LinearLayout.LayoutParams editLp = new LinearLayout.LayoutParams(300, 150);
+                editButton.setLayoutParams(editLp);
+                editButton.setTextSize(30);
                 editButton.setOnClickListener(v -> {
                     PopupMenu popupMenu = new PopupMenu(this, v);
                     popupMenu.getMenuInflater().inflate(R.menu.edit_article_btn, popupMenu.getMenu());

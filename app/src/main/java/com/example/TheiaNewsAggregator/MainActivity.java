@@ -213,13 +213,6 @@ public class MainActivity extends AppCompatActivity {
         public String link;
         public Bitmap image;
     }
-
-    private static boolean isPlaceholderImage(String url) {
-        if(url == null || url.contains("none-800.jpg") || url.contains("/none-")){
-            return true;
-        }
-        return false;
-    }
     private static Bitmap tryLoadImage(String url) {
         if(url == null || url.contains("none-800.jpg") || url.contains("/none-")){
             return null;
