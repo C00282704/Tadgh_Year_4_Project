@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".MainPlaylist">
 
     <LinearLayout
         android:id="@+id/Header"
@@ -82,11 +82,12 @@
         android:id="@+id/addPlaylistButton"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:layout_marginEnd="20dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
         android:background="@color/white"
         android:scaleType="fitCenter"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/MainScroll"
+        app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@android:drawable/ic_menu_add" />
     <ImageButton
         android:id="@+id/settingsBtn"

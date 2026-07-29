@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">RssReaderTest6</string>
+    <string name="app_name">Theia News Reader</string>
     <string name="Return">RETURN</string>
     <string name="TitlePlaceholder">Title Placeholder</string>
     <string name="Theia">THEIA</string>
@@ -12,5 +12,6 @@
     <string name="Apply">Apply</string>
     <string name="Exit">Exit</string>
     <string name="AddFeed">Add Feed</string>
+    <string name="Edit">Edit</string>
 
 </resources>
