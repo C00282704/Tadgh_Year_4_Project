@@ -1,8 +1,8 @@
-package com.example.TheiaNewsAggregator;
+ package com.example.TheiaNewsAggregator;
 import static com.example.TheiaNewsAggregator.R.id.textToSpeechButton;
-import static java.util.Locale.ENGLISH;
+import static java.util.Locale.ENGLISH;  
 
-import android.app.AlertDialog;
+import android.app.Alert Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -59,7 +59,8 @@ public class Article_Display extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Intent receiverIntent = getIntent();
-        String uri = receiverIntent.getStringExtra("uri");
+        Article articleObj = receiverIntent.getStringExtra("article");
+        String uri = articleObj.link;
 
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
@@ -150,8 +151,7 @@ public class Article_Display extends AppCompatActivity {
                                     Log.i("SAVE_CHECK_POS", gson.toJson(playlistArray));;
                                 })
                                 .setNegativeButton("No", (dialog2, selectOpt) -> {
-                                    String name = uri;
-                                    playlistArray[selectedIndex[0]].addArticle(new Article(name, uri));
+                                    playlistArray[selectedIndex[0]].addArticle(new Article(articleObj.name, uri));
                                     prefs.edit().putString("Playlists", gson.toJson(playlistArray)).apply();
                                     Log.i("SAVE_CHECK_NEG", gson.toJson(playlistArray));;
                                 })

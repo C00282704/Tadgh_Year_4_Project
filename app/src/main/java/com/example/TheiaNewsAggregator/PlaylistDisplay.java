@@ -116,7 +116,7 @@ public class PlaylistDisplay extends AppCompatActivity {
                 listMain.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
                 listMain.setOnClickListener(v -> {
                     Intent intent = new Intent(PlaylistDisplay.this, Article_Display.class);
-                    intent.putExtra("uri", link);
+                    intent.putExtra("article", article);
                     startActivity(intent);
                 });
 
