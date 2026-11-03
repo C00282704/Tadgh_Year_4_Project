@@ -1,8 +1,8 @@
- package com.example.TheiaNewsAggregator;
+package com.example.TheiaNewsAggregator;
 import static com.example.TheiaNewsAggregator.R.id.textToSpeechButton;
 import static java.util.Locale.ENGLISH;  
 
-import android.app.Alert Dialog;
+import android.app.Alert.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
