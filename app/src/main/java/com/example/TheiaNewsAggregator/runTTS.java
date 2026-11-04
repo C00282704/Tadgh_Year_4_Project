@@ -1,3 +1,12 @@
+package com.example.TheiaNewsAggregator;
+
+import android.speech.tts.TextToSpeech;
+
+import java.text.BreakIterator;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
 public class runTTS implements Runnable {
     private final String text;
     private final TextToSpeech tts;
