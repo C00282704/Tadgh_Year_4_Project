@@ -42,6 +42,39 @@ public class Article_Display extends AppCompatActivity {
     WebView article;
 
     Thread thread1;
+    private static final String EXTRACT_JS =
+    "(function () {" +
+    "  var tags = 'nav,header,footer,aside,figure,button,[role=navigation],[role=banner],[role=contentinfo],[role=complementary]';" +
+    "  function grab(root) {" +
+    "    var text = []; " +
+    "    var ps = root.querySelectorAll('p');" +
+    "    for (var i = 0; i < ps.length; i++) {" +
+    "      var j = ps[i].closest(tags);" +
+    "      if (j && root.contains(j)){ " +
+    "           continue; }" +
+    "      var t = ps[i].innerText.trim();" +
+    "      if (t.split(/\\s+/).length < 5){ " +
+    "           continue; }" +
+    "      text.push(t);" +
+    "    }" +
+    "    return text;" +
+    "  }" +
+    "  var best = []; " +
+    "  var bestLen = 0;" +
+    "  var c = document.querySelectorAll('[itemprop=articleBody], article, main, [role=main]');" +
+    "  for (var i = 0; i < c.length; i++) {" +
+    "    var p = grab(c[i]);" +
+    "    len = p.join('').length;" +
+    "    if (len > bestLen) { " +
+    "       best = p;" +
+    "       bestLen = len;" +
+    "    }  " +
+    "  }    " +
+    "  if (bestLen < 200){" + 
+    "     best = grab(document.body);" +
+    "  }        " +
+    "  window.INTERFACE.processContent(best.join('\\n\\n'));" +
+    "})();";
 
     @Override
     protected void onDestroy() {
@@ -201,10 +234,9 @@ public class Article_Display extends AppCompatActivity {
         article.getSettings().setJavaScriptEnabled(true);
         article.addJavascriptInterface(new MyJavaScriptInterface(contentView), "INTERFACE");
         article.setWebViewClient(new WebViewClient() {
-            @Override
-            public void onPageFinished(WebView view, String url)
-            {
-                view.loadUrl("javascript:window.INTERFACE.processContent(document.getElementsByTagName('body')[0].innerText);");
+           @Override
+            public void onPageFinished(WebView view, String url) {
+                view.evaluateJavascript(EXTRACT_JS, null);
             }
         });
     }
