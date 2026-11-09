@@ -148,8 +148,6 @@ public class PlaylistDisplay extends AppCompatActivity {
                 String plName = playlist.name;
                 final Playlist finalPlaylist = playlist;
 
-                int index = i2;
-
                 LinearLayout.LayoutParams titleLp = new LinearLayout.LayoutParams(300,150);
                 TextView tv1 = new TextView(PlaylistDisplay.this);
                 tv1.setText(article.name);
@@ -214,7 +212,7 @@ public class PlaylistDisplay extends AppCompatActivity {
                             new AlertDialog.Builder(v.getContext()) //make sure user wants to delete playlist
                                 .setTitle("Delete "+article.name+"?")
                                 .setPositiveButton("Yes", (dialog, which) -> {
-                                        finalPlaylist.list.remove(index);
+                                        finalPlaylist.list.remove(article);
                                         for(int i3 = 0; i3 < playlists.size(); i3++){
                                             if(Objects.equals(playlists.get(i3).name, plName)){
                                                 playlists.set(i3, finalPlaylist);
