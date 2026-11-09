@@ -159,7 +159,15 @@ public class PlaylistDisplay extends AppCompatActivity {
                 String link = article.link;
                 LinearLayout listMain = new LinearLayout(PlaylistDisplay.this);
                 listMain.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-                listMain.setOnClickListener(v -> {
+                listMain.setTag(article);
+                listMain.setOnDragListener(dragListener);
+                listMain.setOnLongClickListener(lMVar -> {
+                    draggedRow = lMVar;
+                    lMVar.startDragAndDrop(null, new View.DragShadowBuilder(lMVar), null, 0);
+                    lMVar.setVisibility(View.INVISIBLE);
+                    return true;
+                });
+                listMain.setOnClickListener(lMVar -> {
                     Intent intent = new Intent(PlaylistDisplay.this, Article_Display.class);
                     intent.putExtra("uri", link);
                     startActivity(intent);
