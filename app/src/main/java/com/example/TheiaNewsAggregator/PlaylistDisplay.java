@@ -128,7 +128,7 @@ public class PlaylistDisplay extends AppCompatActivity {
 
                     case DragEvent.ACTION_DRAG_ENDED:
                         if (draggedRow != null) {
-                            draggedRow.setVisibility(View.VISIBLE);
+                            draggedRow.setAlpha(1f); 
                             draggedRow = null;
 
                             List<Article> newOrder = new ArrayList<>();
@@ -162,7 +162,7 @@ public class PlaylistDisplay extends AppCompatActivity {
                 listMain.setOnLongClickListener(lMVar -> {
                     draggedRow = lMVar;
                     lMVar.startDragAndDrop(null, new View.DragShadowBuilder(lMVar), null, 0);
-                    lMVar.setVisibility(View.INVISIBLE);
+                    lMVar.setAlpha(0f); 
                     return true;
                 });
                 listMain.setOnClickListener(lMVar -> {
