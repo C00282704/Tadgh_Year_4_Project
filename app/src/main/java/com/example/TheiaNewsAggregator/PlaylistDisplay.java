@@ -42,6 +42,7 @@ import java.util.Objects;
 
 
 public class PlaylistDisplay extends AppCompatActivity {
+    private View draggedRow;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
