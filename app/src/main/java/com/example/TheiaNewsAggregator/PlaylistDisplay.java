@@ -98,6 +98,49 @@ public class PlaylistDisplay extends AppCompatActivity {
             finish();
         }else{
             LinearLayout mainContainer = findViewById(R.id.LL1);
+            View scroll = findViewById(R.id.MainScroll);
+            final Playlist currentPlaylist = playlist;
+            View.OnDragListener dragListener = (row, event) -> {
+                switch (event.getAction()) {
+                    case DragEvent.ACTION_DRAG_STARTED:
+                        return true;
+
+                    case DragEvent.ACTION_DRAG_ENTERED:
+                        if (draggedRow != null && row != draggedRow) {
+                            int slot = mainContainer.indexOfChild(row);
+                            mainContainer.removeView(draggedRow);
+                            mainContainer.addView(draggedRow, slot);
+                        }
+                        return true;
+
+                    case DragEvent.ACTION_DRAG_LOCATION: {
+                        float y = row.getTop() - scroll.getScrollY() + event.getY();
+                        int edge = scroll.getHeight() / 6;
+                        if (y < edge) {
+                            scroll.scrollBy(0, -30);
+                        } else if (y > scroll.getHeight() - edge) {
+                            scroll.scrollBy(0, 30);
+                        }
+                        return true;
+                    }
+
+                    case DragEvent.ACTION_DRAG_ENDED:
+                        if (draggedRow != null) {
+                            draggedRow.setVisibility(View.VISIBLE);
+                            draggedRow = null;
+
+                            List<Article> newOrder = new ArrayList<>();
+                            for (int k = 0; k < mainContainer.getChildCount(); k++) {
+                                newOrder.add((Article) mainContainer.getChildAt(k).getTag());
+                            }
+                            currentPlaylist.list.clear();
+                            currentPlaylist.list.addAll(newOrder);
+                            prefs.edit().putString("Playlists", gson.toJson(playlists)).apply();
+                        }
+                        return true;
+                }
+                return true;
+            };
             for (int i2 = 0; i2 < playlist.list.size(); i2++) {
                 Article article = playlist.list.get(i2);
                 String plName = playlist.name;
