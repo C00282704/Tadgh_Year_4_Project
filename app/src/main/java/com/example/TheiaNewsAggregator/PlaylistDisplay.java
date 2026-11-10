@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.DragEvent;
 import android.widget.ImageButton;
 // import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -42,6 +43,7 @@ import java.util.Objects;
 
 
 public class PlaylistDisplay extends AppCompatActivity {
+    private View draggedRow;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -98,12 +100,53 @@ public class PlaylistDisplay extends AppCompatActivity {
             finish();
         }else{
             LinearLayout mainContainer = findViewById(R.id.LL1);
+            View scroll = findViewById(R.id.MainScroll);
+            final Playlist currentPlaylist = playlist;
+            View.OnDragListener dragListener = (row, event) -> {
+                switch (event.getAction()) {
+                    case DragEvent.ACTION_DRAG_STARTED:
+                        return true;
+
+                    case DragEvent.ACTION_DRAG_ENTERED:
+                        if (draggedRow != null && row != draggedRow) {
+                            int slot = mainContainer.indexOfChild(row);
+                            mainContainer.removeView(draggedRow);
+                            mainContainer.addView(draggedRow, slot);
+                        }
+                        return true;
+
+                    case DragEvent.ACTION_DRAG_LOCATION: {
+                        float y = row.getTop() - scroll.getScrollY() + event.getY();
+                        int edge = scroll.getHeight() / 6;
+                        if (y < edge) {
+                            scroll.scrollBy(0, -30);
+                        } else if (y > scroll.getHeight() - edge) {
+                            scroll.scrollBy(0, 30);
+                        }
+                        return true;
+                    }
+
+                    case DragEvent.ACTION_DRAG_ENDED:
+                        if (draggedRow != null) {
+                            draggedRow.setAlpha(1f); 
+                            draggedRow = null;
+
+                            List<Article> newOrder = new ArrayList<>();
+                            for (int k = 0; k < mainContainer.getChildCount(); k++) {
+                                newOrder.add((Article) mainContainer.getChildAt(k).getTag());
+                            }
+                            currentPlaylist.list.clear();
+                            currentPlaylist.list.addAll(newOrder);
+                            prefs.edit().putString("Playlists", gson.toJson(playlists)).apply();
+                        }
+                        return true;
+                }
+                return true;
+            };
             for (int i2 = 0; i2 < playlist.list.size(); i2++) {
                 Article article = playlist.list.get(i2);
                 String plName = playlist.name;
                 final Playlist finalPlaylist = playlist;
-
-                int index = i2;
 
                 LinearLayout.LayoutParams titleLp = new LinearLayout.LayoutParams(300,150);
                 TextView tv1 = new TextView(PlaylistDisplay.this);
@@ -114,7 +157,15 @@ public class PlaylistDisplay extends AppCompatActivity {
                 String link = article.link;
                 LinearLayout listMain = new LinearLayout(PlaylistDisplay.this);
                 listMain.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-                listMain.setOnClickListener(v -> {
+                listMain.setTag(article);
+                listMain.setOnDragListener(dragListener);
+                listMain.setOnLongClickListener(lMVar -> {
+                    draggedRow = lMVar;
+                    lMVar.startDragAndDrop(null, new View.DragShadowBuilder(lMVar), null, 0);
+                    lMVar.setAlpha(0f); 
+                    return true;
+                });
+                listMain.setOnClickListener(lMVar -> {
                     Intent intent = new Intent(PlaylistDisplay.this, Article_Display.class);
                     intent.putExtra("uri", link);
                     startActivity(intent);
@@ -161,7 +212,7 @@ public class PlaylistDisplay extends AppCompatActivity {
                             new AlertDialog.Builder(v.getContext()) //make sure user wants to delete playlist
                                 .setTitle("Delete "+article.name+"?")
                                 .setPositiveButton("Yes", (dialog, which) -> {
-                                        finalPlaylist.list.remove(index);
+                                        finalPlaylist.list.remove(article);
                                         for(int i3 = 0; i3 < playlists.size(); i3++){
                                             if(Objects.equals(playlists.get(i3).name, plName)){
                                                 playlists.set(i3, finalPlaylist);
