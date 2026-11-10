@@ -3,15 +3,12 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-// import android.graphics.Bitmap;
-// import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.DragEvent;
 import android.widget.ImageButton;
-// import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.EditText;
@@ -19,10 +16,6 @@ import android.widget.Button;
 import android.widget.PopupMenu;
 
 import com.google.gson.Gson;
-
-// import okhttp3.OkHttpClient;
-// import okhttp3.Request;
-// import okhttp3.Response;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -33,13 +26,9 @@ import androidx.core.view.WindowInsetsCompat;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
-// import java.net.MalformedURLException;
-// import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-// import java.util.regex.Matcher;
-// import java.util.regex.Pattern;
 
 
 public class PlaylistDisplay extends AppCompatActivity {
@@ -168,6 +157,8 @@ public class PlaylistDisplay extends AppCompatActivity {
                 listMain.setOnClickListener(lMVar -> {
                     Intent intent = new Intent(PlaylistDisplay.this, Article_Display.class);
                     intent.putExtra("uri", link);
+                    intent.putExtra("playlist", plName);
+                    intent.putExtra("index", mainContainer.indexOfChild(lMVar));
                     startActivity(intent);
                 });
 

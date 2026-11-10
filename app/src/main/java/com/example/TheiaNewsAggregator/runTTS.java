@@ -10,6 +10,7 @@ import java.util.Locale;
 public class runTTS implements Runnable {
     private final String text;
     private final TextToSpeech tts;
+    static final String LAST_ID = "Article_END";
 
     runTTS(String text, TextToSpeech tts) {
         this.text = text;
@@ -21,8 +22,8 @@ public class runTTS implements Runnable {
         int max = Math.min(TextToSpeech.getMaxSpeechInputLength(), 1000);
         List<String> chunks = chunk(text, max);
         for (int i = 0; i < chunks.size(); i++) {
-            int mode = (i == 0) ? TextToSpeech.QUEUE_FLUSH : TextToSpeech.QUEUE_ADD;
-            tts.speak(chunks.get(i), mode, null, "Article_" + i);
+            String id = (i == chunks.size() - 1) ? LAST_ID : "Article_" + i;
+            tts.speak(chunks.get(i), mode, null, id);
         }
     }
 

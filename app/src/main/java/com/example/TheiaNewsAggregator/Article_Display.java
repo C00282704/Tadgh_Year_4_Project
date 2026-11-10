@@ -114,7 +114,9 @@ public class Article_Display extends AppCompatActivity {
         tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
             @Override
             public void onDone(String s) {
-                
+                if (runTTS.LAST_ID.equals(s)) {
+                    runOnUiThread(() -> playNextArticle());
+                }
             }
 
             @Override
@@ -239,5 +241,67 @@ public class Article_Display extends AppCompatActivity {
                 view.evaluateJavascript(EXTRACT_JS, null);
             }
         });
+    }
+    
+    private void startTTS() {
+        ttsPressed = true;
+        ttsButton.setImageResource(android.R.drawable.ic_lock_silent_mode_off);
+        if (contentReady) {
+            speak();
+        } else {
+            pendingSpeak = true;
+        }
+    }
+
+    private void stopTTS() {
+        ttsPressed = false;
+        pendingSpeak = false;
+        ttsButton.setImageResource(android.R.drawable.ic_lock_silent_mode);
+        if (thread1 != null) {
+            thread1.interrupt();
+        }
+        tts.stop();
+    }
+
+    private void speak() {
+        thread1 = new Thread(new runTTS(contentView.getText().toString(), tts));
+        thread1.start();
+    }
+
+    private void playNextArticle() {
+        if (!ttsPressed) {
+            return;                  
+        }
+        String next = findNextLink();
+        if (next == null) {
+            stopTTS();                
+            return;
+        }
+        articleIndex++;
+        uri = next;
+        contentReady = false;
+        pendingSpeak = true;
+        contentView.setText("");
+        article.loadUrl(uri);
+    }
+
+    private String findNextLink() {
+        if (playlistName == null || articleIndex < 0) {
+            return null;
+        }
+        String json = getSharedPreferences("Prefs", Context.MODE_PRIVATE).getString("Playlists", null);
+        List<Playlist> lists = new Gson().fromJson(json, new TypeToken<List<Playlist>>() {}.getType());
+        if (lists == null) {
+            return null;
+        }
+        for (Playlist p : lists) {
+            if (playlistName.equals(p.name)) {
+                if (articleIndex + 1 < p.list.size()) {
+                    return p.list.get(articleIndex + 1).link;
+                }
+                return null;
+            }
+        }
+        return null;
     }
 }
