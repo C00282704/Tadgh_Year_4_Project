@@ -20,9 +20,20 @@ public class runTTS implements Runnable {
     @Override
     public void run() {
         int max = Math.min(TextToSpeech.getMaxSpeechInputLength(), 1000);
+        int mode;
+        String id;
         List<String> chunks = chunk(text, max);
         for (int i = 0; i < chunks.size(); i++) {
-            String id = (i == chunks.size() - 1) ? LAST_ID : "Article_" + i;
+            if (i == 0) {
+                mode = TextToSpeech.QUEUE_FLUSH;
+            } else {
+                mode = TextToSpeech.QUEUE_ADD;
+            }
+            if (i == chunks.size() - 1){
+                id = LAST_ID;
+            } else{
+                id = "Article_" + i;
+            }
             tts.speak(chunks.get(i), mode, null, id);
         }
     }

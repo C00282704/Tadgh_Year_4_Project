@@ -42,6 +42,13 @@ public class Article_Display extends AppCompatActivity {
     WebView article;
 
     Thread thread1;
+
+    String uri;
+    String playlistName;
+    int articleIndex;
+    boolean contentReady = false;
+    boolean pendingSpeak = false; 
+
     private static final String EXTRACT_JS =
     "(function () {" +
     "  var tags = 'nav,header,footer,aside,figure,button,[role=navigation],[role=banner],[role=contentinfo],[role=complementary]';" +
@@ -92,7 +99,9 @@ public class Article_Display extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Intent receiverIntent = getIntent();
-        String uri = receiverIntent.getStringExtra("uri");
+        uri = receiverIntent.getStringExtra("uri");
+        playlistName = receiverIntent.getStringExtra("playlist");
+        articleIndex = receiverIntent.getIntExtra("index", -1);
 
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
@@ -197,6 +206,16 @@ public class Article_Display extends AppCompatActivity {
             }
         });
         contentView = (TextView) findViewById(R.id.contentView);
+                
+        ttsButton = findViewById(textToSpeechButton);
+        ttsButton.setOnClickListener(view -> {
+            if (!ttsPressed) {
+                startTTS();
+            } else {
+                stopTTS();
+            }
+        });
+
         class MyJavaScriptInterface {
             public MyJavaScriptInterface(TextView aContentView) {
                 contentView = aContentView;
@@ -208,26 +227,13 @@ public class Article_Display extends AppCompatActivity {
                 contentView.post(new Runnable() {
                     public void run() {
                         contentView.setText(content);
-                            ttsButton = findViewById(textToSpeechButton);
-                            ttsButton.setOnClickListener(new View.OnClickListener(){
-                                @Override
-                                public void onClick(View view) {
-                                    if (ttsPressed == false) {
-                                        ttsButton.setImageResource(android.R.drawable.ic_lock_silent_mode_off);
-                                        ttsPressed = true;
-                                        String text = contentView.getText().toString();
-                                        thread1 = new Thread(new runTTS(text, tts));
-                                        thread1.start();
-
-                                    }
-                                    else {
-                                        ttsButton.setImageResource(android.R.drawable.ic_lock_silent_mode);
-                                        ttsPressed = false;
-                                        thread1.interrupt();
-                                        tts.stop();
-                                    }
-                                }
-                            });
+                        if (!content.isEmpty()) {
+                            contentReady = true;
+                            if (pendingSpeak) {
+                                pendingSpeak = false;
+                                speak();
+                            }
+                        }
                     }
                 });
             }
