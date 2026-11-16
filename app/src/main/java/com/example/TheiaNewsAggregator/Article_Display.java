@@ -44,6 +44,7 @@ public class Article_Display extends AppCompatActivity {
     Thread thread1;
 
     String uri;
+    String title;
     String playlistName;
     int articleIndex;
     boolean contentReady = false;
@@ -100,6 +101,7 @@ public class Article_Display extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         Intent receiverIntent = getIntent();
         uri = receiverIntent.getStringExtra("uri");
+        title = receiverIntent.getStringExtra("title");
         playlistName = receiverIntent.getStringExtra("playlist");
         articleIndex = receiverIntent.getIntExtra("index", -1);
 
@@ -182,7 +184,7 @@ public class Article_Display extends AppCompatActivity {
                             }
                             //Lets user change name of article entered into playlist
                             EditText input = new EditText(view.getContext());
-                            input.setHint("Change Article Name");
+                            input.setText(title);
                             String playlistName = playlistArray[selectedIndex[0]].name;
 
                             new AlertDialog.Builder(view.getContext())
@@ -194,12 +196,12 @@ public class Article_Display extends AppCompatActivity {
                                     Log.i("SAVE_CHECK_POS", gson.toJson(playlistArray));;
                                 })
                                 .setNegativeButton("No", (dialog2, selectOpt) -> {
-                                    String name = uri;
+                                    String name = title;
                                     playlistArray[selectedIndex[0]].addArticle(new Article(name, uri));
                                     prefs.edit().putString("Playlists", gson.toJson(playlistArray)).apply();
                                     Log.i("SAVE_CHECK_NEG", gson.toJson(playlistArray));;
                                 })
-                                .show();
+                            .show();
                         })
                         .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
                         .show();

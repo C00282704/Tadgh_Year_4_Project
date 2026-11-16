@@ -117,6 +117,7 @@ public class MainActivity extends AppCompatActivity {
                             listMain.setOnClickListener(v -> {
                                 Intent intent = new Intent(MainActivity.this, Article_Display.class);
                                 intent.putExtra("uri", link);
+                                intent.putExtra("title", article.title);
                                 startActivity(intent);
                             });
 
