@@ -93,11 +93,17 @@ public class ChangeRSSFeeds extends AppCompatActivity {
             if(urls == null || urls.isEmpty()){
                 //make RTE
                 List<String> list = new ArrayList<>();
-                list.add("https://www.rte.ie/feeds/rss/?index=/news/");
+                list.add("RTE");
+                list.add("Derry Journal");
+                list.add("Irish Times");
+                list.add("Irish Independent");
                 String json = gson.toJson(list);
                 prefs.edit().putString("RSSFeeds", json).apply();
                 urls = new ArrayList<>();
                 urls.add("https://www.rte.ie/feeds/rss/?index=/news/");
+                urls.add("https://www.derryjournal.com/rss");
+                urls.add("https://www.irishtimes.com/cmlink/news-1.1319192");
+                urls.add("tps://www.independent.ie/breaking-news/irish-news/?service=Rss");
             }
             /////////////////////////////////////////////////////
             //Create check boxes from below using urls
@@ -186,6 +192,21 @@ public class ChangeRSSFeeds extends AppCompatActivity {
             applyButton.setEnabled(true);
         }
     }
+
+    public String changeFeedName(){
+        String name;
+        new AlertDialog.Builder(view.getContext())
+            .setTitle("Change Feed Name?").setView(input)
+            .setPositiveButton("Yes", (dialog2, selectOpt) -> {
+                name = input.getText().toString();
+            })
+            .setNegativeButton("No", (dialog2, selectOpt) -> {
+            })
+        .show();
+        return name;
+    }
+
+    
 
     public boolean isValidUrlSyntax(String urlString) {
         if (urlString == null || urlString.trim().isEmpty()) {
